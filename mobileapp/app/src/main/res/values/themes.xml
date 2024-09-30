@@ -6,4 +6,10 @@
     </style>
 
     <style name="Theme.ShopEase" parent="Base.Theme.ShopEase" />
+
+    <!-- Full-screen Splash Screen Theme -->
+    <style name="Theme.SplashScreen" parent="Theme.Design.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
 </resources>
