@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient"
-    tools:context=".SignIn">
+    tools:context=".Register">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -30,14 +30,10 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/imageView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/app_logo"
-            android:paddingHorizontal="40dp"
-            app:srcCompat="@drawable/logo" />
 
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
 
         <EditText
             android:id="@+id/edTxt_mail"
@@ -53,25 +49,25 @@
             android:textColorHint="@color/primary_darker" />
 
         <EditText
-            android:id="@+id/edTxt_pass"
+            android:id="@+id/edTxt_name"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="30dp"
-            android:autofillHints="password"
+            android:autofillHints="name"
             android:background="@color/white"
             android:ems="10"
-            android:hint="@string/password"
-            android:inputType="textPassword"
+            android:hint="@string/name"
+            android:inputType="textPersonName"
             android:padding="10dp"
             android:textColorHint="@color/primary_darker" />
 
         <Button
-            android:id="@+id/btn_signIn"
+            android:id="@+id/btn_reg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:backgroundTint="@color/white"
-            android:text="@string/sign_in"
+            android:text="@string/register"
             android:textColor="@color/primary"
             android:textStyle="bold" />
 
@@ -79,7 +75,15 @@
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/create_new_account"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white"
+            android:text="@string/go_to_sign_in" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/app_logo"
+            android:paddingHorizontal="40dp"
+            app:srcCompat="@drawable/logo" />
     </LinearLayout>
 </ScrollView>
