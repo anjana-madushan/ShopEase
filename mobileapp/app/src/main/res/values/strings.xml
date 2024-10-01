@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">ShopEase</string>
     <string name="shop_ease_logo_image">ShopEase Logo Image</string>
+    <string name="company_name">Company Name</string>
+    <string name="shopping_made_easy">Shopping made Easy</string>
+    <string name="sign_in">Sign In</string>
+    <string name="app_logo">App logo</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
 </resources>

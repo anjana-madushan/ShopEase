@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 @SuppressLint("CustomSplashScreen")
@@ -15,19 +16,18 @@ public class SplashActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
 
     // Only show this splash screen if android < 12
-    if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
 
       setContentView(R.layout.activity_splash);
-
-      new Handler().postDelayed(() -> {
-        Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-        startActivity(intent);
-        finish();
-      }, SPLASH_DURATION);
-    }else{
-      Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-      startActivity(intent);
-      finish();
+      new Handler().postDelayed(this::go, SPLASH_DURATION);
+    } else {
+      go();
     }
+  }
+
+  private void go() {
+    Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+    startActivity(intent);
+    finish();
   }
 }
