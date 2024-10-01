@@ -7,4 +7,5 @@
     <string name="app_logo">App logo</string>
     <string name="password">Password</string>
     <string name="email">Email</string>
+    <string name="create_new_account">Create new account</string>
 </resources>
