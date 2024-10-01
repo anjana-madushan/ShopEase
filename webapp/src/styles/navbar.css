@@ -1,0 +1,77 @@
+/* Base styles for the navbar container */
+.navbar-container {
+    width: 105px; /* Collapsed width */
+    background-color: #cea5fd;
+    min-height: 100vh; /* Full height */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease; /* Smooth expand/collapse effect */
+    overflow: hidden; /* Hide overflow for smooth transitions */
+  }
+  
+  /* Expand the sidebar on hover */
+  .navbar-container:hover {
+    width: 240px; /* Expanded width */
+  }
+  
+  /* Common style for each nav item */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    color: #ffffff;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  /* Selected nav item */
+  .nav-item.selected {
+    background-color: #0ca5e6;
+  }
+  
+  /* Hover effect */
+  .nav-item:hover {
+    background-color: #0d82b1;
+  }
+  
+  /* Icon is always visible */
+  .nav-item .icon {
+    margin-right: 10px;
+    font-size: 1.5rem;
+  }
+  
+  /* Text should be hidden when collapsed and shown when expanded */
+  .nav-item .text {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+    display: none; /* Initially hidden */
+  }
+  
+  /* Badge styling */
+  .nav-item .badge {
+    background-color: #10b981;
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    margin-left: auto;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: none; /* Initially hidden */
+  }
+  
+  /* Show the text and badge when the sidebar expands */
+  .navbar-container:hover .nav-item .text,
+  .navbar-container:hover .nav-item .badge {
+    opacity: 1;
+    display: inline-block; /* Make text and badge visible */
+  }
+  
+  
