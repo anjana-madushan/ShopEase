@@ -14,4 +14,6 @@
     <string name="create_or_reset_password">Create or Reset Password</string>
     <string name="non_descriptive_image">Non descriptive image</string>
     <string name="send_otp">Send OTP</string>
+    <string name="verify_otp">Verify OTP</string>
+    <string name="submit">Submit</string>
 </resources>
