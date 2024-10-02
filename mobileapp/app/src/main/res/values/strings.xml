@@ -10,5 +10,6 @@
     <string name="create_new_account">Create new account</string>
     <string name="name">Name</string>
     <string name="register">Register</string>
-    <string name="go_to_sign_in">Go To SignIn</string>
+    <string name="already_have_an_account_sign_in">Already Have an account? Sign In</string>
+    <string name="create_or_forgot_password">Create or Forgot Password</string>
 </resources>
