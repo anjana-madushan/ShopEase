@@ -91,7 +91,7 @@
             android:id="@+id/txt_resetPass"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/create_or_forgot_password"
+            android:text="@string/create_or_reset_password"
             android:textColor="@color/white" />
     </LinearLayout>
 </ScrollView>
