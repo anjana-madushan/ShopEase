@@ -19,4 +19,7 @@
     <string name="submit">Submit</string>
     <string name="verify_otp">Verify OTP</string>
     <string name="confirm_password">Confirm Password</string>
+    <string name="user_profile">User Profile</string>
+    <string name="disable_account">Disable Account</string>
+    <string name="update">Update</string>
 </resources>
