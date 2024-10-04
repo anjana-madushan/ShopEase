@@ -1,19 +1,22 @@
 <resources>
+    <string name="already_have_an_account_sign_in">Already Have an account? Sign In</string>
+    <string name="app_logo">App logo</string>
     <string name="app_name">ShopEase</string>
-    <string name="shop_ease_logo_image">ShopEase Logo Image</string>
     <string name="company_name">Company Name</string>
+    <string name="create_new_account">Create new account</string>
+    <string name="create_or_reset_password">Create or Reset Password</string>
+    <string name="email">Email</string>
+    <string name="name">Name</string>
+    <string name="non_descriptive_image">Non descriptive image</string>
+    <string name="password">Password</string>
+    <string name="register">Register</string>
+    <string name="save">Save</string>
+    <string name="send_otp">Send OTP</string>
+    <string name="set_password">Set Password</string>
+    <string name="shop_ease_logo_image">ShopEase Logo Image</string>
     <string name="shopping_made_easy">Shopping made Easy</string>
     <string name="sign_in">Sign In</string>
-    <string name="app_logo">App logo</string>
-    <string name="password">Password</string>
-    <string name="email">Email</string>
-    <string name="create_new_account">Create new account</string>
-    <string name="name">Name</string>
-    <string name="register">Register</string>
-    <string name="already_have_an_account_sign_in">Already Have an account? Sign In</string>
-    <string name="create_or_reset_password">Create or Reset Password</string>
-    <string name="non_descriptive_image">Non descriptive image</string>
-    <string name="send_otp">Send OTP</string>
-    <string name="verify_otp">Verify OTP</string>
     <string name="submit">Submit</string>
+    <string name="verify_otp">Verify OTP</string>
+    <string name="confirm_password">Confirm Password</string>
 </resources>
