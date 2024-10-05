@@ -3,6 +3,7 @@ using server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using YourNamespace.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,21 @@ builder.Services.AddSingleton<MongoDBService>();
 
 // Register PasswordService
 builder.Services.AddSingleton<PasswordService>();
+
+// Register the memory cache service 
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<EmailService>(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var apiKey = config["SendGrid:ApiKey"];
+    var senderEmail = config["SendGrid:SenderEmail"];
+    var senderName = config["SendGrid:SenderName"];
+    return new EmailService(apiKey, senderEmail, senderName);
+});
+
+builder.Services.AddSingleton<OTPService>();
+
+
 // Configure JWT settings
 var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
 builder.Services.Configure<JwtSettings>(jwtSettingsSection);

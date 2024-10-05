@@ -313,5 +313,69 @@ namespace server.Services
       return await _customerCollection.Find(x => x.Deactivated == true).ToListAsync();
     }
 
-  }
+    //Update User Password
+    public async Task UpdateUserPasswordAsync(string userId, string newPassword, string role)
+    {
+      switch (role.ToLower())
+      {
+        case "admin":
+          var admin = await GetAdminByIdAsync(userId);
+          if (admin == null)
+          {
+            throw new Exception($"Admin with ID {userId} not found.");
+          }
+          admin.Password = newPassword;
+          await UpdateAdminAsync(userId, admin);
+          break;
+
+        case "csr":
+          var csr = await GetCSRByIdAsync(userId);
+          if (csr == null)
+          {
+            throw new Exception($"CSR with ID {userId} not found.");
+          }
+          csr.Password = newPassword;
+          await UpdateCSRAsync(userId, csr);
+          break;
+
+        case "vendor":
+          var vendor = await GetVendorByIdAsync(userId);
+          if (vendor == null)
+          {
+            throw new Exception($"Vendor with ID {userId} not found.");
+          }
+          vendor.Password = newPassword;
+          await UpdateVendorAsync(userId, vendor);
+          break;
+
+        case "customer":
+          var customer = await GetCustomerByIdAsync(userId);
+          if (customer == null)
+          {
+            throw new Exception($"Customer with ID {userId} not found.");
+          }
+          customer.Password = newPassword;
+          await UpdateCustomerAsync(userId, customer);
+          break;
+
+        default:
+          throw new Exception("Invalid role provided.");
+      }
+    }
+
+        private async Task UpdateCSRAsync(string userId, CSR csr)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task UpdateVendorAsync(string userId, Vendor vendor)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task UpdateCustomerAsync(string userId, Users customer)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
