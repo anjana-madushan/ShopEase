@@ -29,5 +29,4 @@ public class Product
 
   [Required(ErrorMessage = "Minimum Stock Level is required")]
   public int MinStockLevel { get; set; } = 10;
-  public List<StockEntry> StockEntries { get; set; }
 }
