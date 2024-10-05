@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient"
     android:padding="20dp"
-    tools:context=".ProfileView">
+    tools:context=".activity.ProfileActivity">
 
     <TextView
         android:id="@+id/textView3"
@@ -43,7 +43,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/edTxt_mail"
+        app:layout_constraintBottom_toTopOf="@+id/edt_email"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -52,7 +52,7 @@
 
 
     <EditText
-        android:id="@+id/edTxt_mail"
+        android:id="@+id/edt_email"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="10dp"
