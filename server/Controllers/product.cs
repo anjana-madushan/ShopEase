@@ -126,4 +126,28 @@ public class ProductController : ControllerBase
 
   }
 
+
+  [HttpPatch("{id}/status")]
+  public async Task<IActionResult> ChangeProductStatus(string id, [FromBody] bool newStatus)
+  {
+    try
+    {
+      var isPatched = await _mongoDBService.ChangeProductStatusAsync(id, newStatus);
+      if (!isPatched)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+      return Ok(new { Message = "Product Listing status updated successfully." });
+    }
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Mongo DB error occurred while updating the product listing status", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
+  }
+
+
 }

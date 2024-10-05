@@ -55,6 +55,15 @@ namespace server.Services
       return result.DeletedCount > 0;
     }
 
+    public async Task<bool> ChangeProductStatusAsync(string id, bool isActive)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Id, id);
+      var update = Builders<Product>.Update.Set(p => p.IsActive, isActive);
+
+      var result = await _productCollection.UpdateOneAsync(filter, update);
+      return result.ModifiedCount > 0;
+    }
+
     // Pet methods
     // public async Task<List<Pet>> GetPetsAsync()
     // {

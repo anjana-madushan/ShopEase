@@ -2,7 +2,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
-
 namespace server.Models;
 
 public class Product
@@ -22,4 +21,6 @@ public class Product
   public string Category { get; set; } = null!;
 
   public string Description { get; set; } = null!;
+
+  public bool IsActive { get; set; } = true;
 }
