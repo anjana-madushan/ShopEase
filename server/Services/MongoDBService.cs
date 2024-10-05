@@ -48,10 +48,11 @@ namespace server.Services
     public async Task UpdateProductAsync(string id, Product updatedProduct) =>
         await _productCollection.ReplaceOneAsync(x => x.Id == id, updatedProduct);
 
-    public async Task DeleteProductAsync(string id)
+    public async Task<bool> DeleteProductAsync(string id)
     {
       FilterDefinition<Product> filter = Builders<Product>.Filter.Eq("Id", id);
-      await _productCollection.DeleteOneAsync(filter);
+      var result = await _productCollection.DeleteOneAsync(filter);
+      return result.DeletedCount > 0;
     }
 
     // Pet methods

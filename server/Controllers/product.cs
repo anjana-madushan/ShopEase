@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNetCore.Mvc;
 using server.Services;
 using server.Models;
+using MongoDB.Driver;
 
 namespace MongoExample.Controllers;
 
@@ -18,53 +19,111 @@ public class ProductController : ControllerBase
   }
 
   [HttpGet]
-  public async Task<List<Product>> Get()
+  public async Task<IActionResult> Get()
   {
-    return await _mongoDBService.GetProductsAsync();
+    try
+    {
+      var products = await _mongoDBService.GetProductsAsync();
+      return Ok(products);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
   }
 
   [HttpGet("{id:length(24)}")]
   public async Task<ActionResult<Product>> Get(string id)
   {
-    var product = await _mongoDBService.GetProductAsync(id);
-
-    if (product is null)
+    try
     {
-      return NotFound();
-    }
+      var product = await _mongoDBService.GetProductAsync(id);
 
-    return product;
+      if (product is null)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+
+      return Ok(product);
+
+    }
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Mongo DB error occurred while getting this product", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
   }
 
   [HttpPost]
   public async Task<IActionResult> Post([FromBody] Product product)
   {
-    await _mongoDBService.CreateProductAsync(product);
-    return CreatedAtAction(nameof(Get), new { id = product.Id }, product);
+    try
+    {
+      await _mongoDBService.CreateProductAsync(product);
+      return CreatedAtAction(nameof(Get), new { id = product.Id }, product);
+    }
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Error ocurred when adding the details to the MongoDB", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
   }
 
   [HttpPut("{id:length(24)}")]
-  public async Task<IActionResult> Update(string id, Product updatedBook)
+  public async Task<IActionResult> Update(string id, Product updatedProduct)
   {
-    var product = await _mongoDBService.GetProductAsync(id);
-
-    if (product is null)
+    try
     {
-      return NotFound();
+      var product = await _mongoDBService.GetProductAsync(id);
+
+      if (product is null)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+
+      updatedProduct.Id = product.Id;
+
+      await _mongoDBService.UpdateProductAsync(id, updatedProduct);
+
+      return Ok(new { Message = "Product updated successfully", UpdatedProduct = updatedProduct });
     }
-
-    updatedBook.Id = product.Id;
-
-    await _mongoDBService.UpdateProductAsync(id, updatedBook);
-
-    return NoContent();
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Mongo DB error occurred while updating this product", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
   }
 
   [HttpDelete("{id}")]
   public async Task<IActionResult> Delete(string id)
   {
-    await _mongoDBService.DeleteProductAsync(id);
-    return NoContent();
+    try
+    {
+      var isRemoved = await _mongoDBService.DeleteProductAsync(id);
+      if (!isRemoved)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+      return Ok(new { Message = "Product deleted successfully" });
+    }
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Mongo DB error occurred while deleting this product", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
+
   }
 
 }
