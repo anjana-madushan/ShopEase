@@ -23,4 +23,11 @@ public class Product
   public string Description { get; set; } = null!;
 
   public bool IsActive { get; set; } = true;
+
+  [Range(30, double.MaxValue, ErrorMessage = "Price must be greater than 30")]
+  public int StockLevel { get; set; }
+
+  [Required(ErrorMessage = "Minimum Stock Level is required")]
+  public int MinStockLevel { get; set; } = 10;
+  public List<StockEntry> StockEntries { get; set; }
 }

@@ -4,8 +4,6 @@ using server.Services;
 using server.Models;
 using MongoDB.Driver;
 
-namespace MongoExample.Controllers;
-
 [ApiController]
 [Route("api/[controller]")]
 public class ProductController : ControllerBase

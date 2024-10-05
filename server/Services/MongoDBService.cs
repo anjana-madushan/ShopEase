@@ -64,6 +64,17 @@ namespace server.Services
       return result.ModifiedCount > 0;
     }
 
+    //Inventory methods
+    public async Task<bool> DeductAvailableStock(string id, int quantity)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Id, id);
+      var updatedAvailableStock = quantity;
+      var update = Builders<Product>.Update.Set(p => p.StockLevel, updatedAvailableStock);
+
+      var result = await _productCollection.UpdateOneAsync(filter, update);
+      return result.ModifiedCount > 0;
+    }
+
     // Pet methods
     // public async Task<List<Pet>> GetPetsAsync()
     // {

@@ -17,6 +17,8 @@ builder.Services.AddCors(options =>
           .AllowAnyMethod()
           .AllowAnyHeader());
 });
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddSingleton<EmailService>();
 
 builder.Services.Configure<MongoDBConfig>(builder.Configuration.GetSection("MongoDB"));
 builder.Services.AddSingleton<MongoDBService>();
