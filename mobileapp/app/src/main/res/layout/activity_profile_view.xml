@@ -43,12 +43,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="20dp"
+        android:contentDescription="@string/non_descriptive_image"
         app:layout_constraintBottom_toTopOf="@+id/edt_email"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView3"
-        app:srcCompat="@drawable/user" />
+        app:srcCompat="@drawable/img_user" />
 
 
     <EditText
