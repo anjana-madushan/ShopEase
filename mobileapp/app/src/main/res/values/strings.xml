@@ -22,4 +22,6 @@
     <string name="user_profile">User Profile</string>
     <string name="disable_account">Disable Account</string>
     <string name="update">Update</string>
+    <string name="search_products">Search Products</string>
+    <string name="item_image">Item Image</string>
 </resources>

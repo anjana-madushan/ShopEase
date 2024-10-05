@@ -29,7 +29,7 @@
             android:exported="false" />
         <activity
             android:name=".SignIn"
-            android:exported="false" /> <!-- No action bar theme -->
+            android:exported="false" />
         <activity
             android:name=".SplashActivity"
             android:exported="true"
