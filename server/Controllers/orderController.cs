@@ -554,6 +554,24 @@ namespace MongoExample.Controllers
                     return BadRequest("Order already ready.");
                 }
 
+                //Check if already dispatched
+                if (order.Status != server.Models.OrderStatus.Dispatched)
+                {
+                    return BadRequest("Order not dispatched. Cannot update to ready.");
+                }
+
+                //Check if request to cancel is true
+                if (order.RequestToCancel == true)
+                {
+                    return BadRequest("Order has been requested to cancel. Cannot update to ready.");
+                }
+
+                //Check if cancelled is true
+                if (order.Cancelled == true)
+                {
+                    return BadRequest("Order has been cancelled. Cannot update to ready.");
+                }
+
                 dynamic userDetail = null;
                 //Verify the user role
                 if (statusUpdateDTO.Role == "vendor")
