@@ -24,4 +24,6 @@
     <string name="update">Update</string>
     <string name="search_products">Search Products</string>
     <string name="item_image">Item Image</string>
+    <string name="placeholder_text">Placeholder Text</string>
+    <string name="ellipsis">…</string>
 </resources>
