@@ -5,6 +5,7 @@ using server.Models;
 using server.DTOs;
 using Microsoft.Extensions.Options;
 using api.Dtos.Account;
+using YourNamespace.Services;
 
 namespace MongoExample.Controllers
 {
@@ -14,18 +15,18 @@ namespace MongoExample.Controllers
     {
         private readonly MongoDBService _mongoDBService;
         private readonly PasswordService _passwordService;
-
         private readonly JwtSettings _jwtSettings;
-
+        private readonly EmailService _emailService;
         private readonly OTPService _otpService;
 
         // Ensure this is the only constructor
-        public UserController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService, OTPService otpService)
+        public UserController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService, OTPService otpService, EmailService emailService)
         {
             _mongoDBService = mongoDBService;
             _passwordService = passwordService;
             _otpService = otpService;
             _jwtSettings = jwtSettings.Value;
+            _emailService = emailService;
         }
 
         // User Login with JWT Authentication
@@ -458,7 +459,8 @@ namespace MongoExample.Controllers
                 // Save the updated user details 
                 await _mongoDBService.UpdateCustomer(id, existingUser);
 
-
+                // Send an email to the customer
+                await _emailService.SendEmailAsync(existingUser.Email, "Account Approval", "Your account has been approved.");
                 return Ok(existingUser);
             }
             catch (Exception ex)
@@ -914,7 +916,7 @@ namespace MongoExample.Controllers
                 // Update the user password
                 existingUser.Password = hashedPassword;
 
-                var userId = existingUser.Id; 
+                var userId = existingUser.Id;
 
                 // Save the updated user details
                 await _mongoDBService.UpdateUserPasswordAsync(userId, hashedPassword, role);
