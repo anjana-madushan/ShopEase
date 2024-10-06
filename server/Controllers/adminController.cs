@@ -5,6 +5,7 @@ using server.Models;
 using server.DTOs;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using YourNamespace.Services;
 
 namespace MongoExample.Controllers;
 
@@ -17,11 +18,14 @@ public class AdminController : ControllerBase
     private readonly PasswordService _passwordService;
     private readonly JwtSettings _jwtSettings;
 
-    public AdminController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService)
+    private readonly EmailService _emailService;
+
+    public AdminController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService, EmailService emailService)
     {
         _mongoDBService = mongoDBService;
         _jwtSettings = jwtSettings.Value;
         _passwordService = passwordService;
+        _emailService = emailService;
     }
 
     //Create a new Admin user call the DTO
@@ -245,6 +249,8 @@ public class AdminController : ControllerBase
 
             await _mongoDBService.CreateCSRAsync(newCSR);
 
+            //Send email to CSR with the password and email
+            await _emailService.SendEmailAsync(newCSR.Email, "Welcome to the team", $"Your Email is ${csr.Email} and password: {csr.Password}");
             //Find the admin by id and update the admin List
             adminList.CSRCreated.Add(newCSR);
             await _mongoDBService.UpdateAdminAsync(adminList.Id, adminList);
@@ -325,6 +331,9 @@ public class AdminController : ControllerBase
             };
 
             await _mongoDBService.CreateVendorAsync(newVendor);
+
+            //Send email to Vendor with the password and email
+            await _emailService.SendEmailAsync(newVendor.Email, "Welcome to the team", $"Your Email is ${vendor.Email} and password: {vendor.Password}");
 
             //Find the admin by id and update the admin List
             adminList.VendorCreated.Add(newVendor);
