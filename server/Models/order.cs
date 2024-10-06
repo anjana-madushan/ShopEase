@@ -7,7 +7,6 @@ namespace server.Models;
 // Defined an enum for OrderStatus
 public enum OrderStatus
 {
-    Ordered,
     Processing,
     Ready,
     Dispatched,
@@ -71,6 +70,9 @@ public class Order
 
     [BsonElement("cancelledBy")]
     public string? CancelledBy { get; set; }
+
+    [BsonElement("note")]
+    public string? Note { get; set; } = "";
 
     [BsonElement("[paymentStatus]")]
     public bool PaymentStatus { get; set; } = false;

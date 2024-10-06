@@ -110,7 +110,7 @@ namespace MongoExample.Controllers
             {
                 OrderId = orderID,
                 OrderDate = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"),
-                Status = server.Models.OrderStatus.Ordered,
+                Status = server.Models.OrderStatus.Processing,
                 StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"),
                 ShippingAddress = orderDTO.ShippingAddress,
                 BillingAddress = orderDTO.BillingAddress,
@@ -174,7 +174,7 @@ namespace MongoExample.Controllers
             order.CancelledOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
             order.CancelledBy = order.UserId;
             order.Cancelled = true;
-            
+
             //Add to Notification
             var notification = await _mongoDBService.CreateNotification(new Notification
             {
@@ -189,6 +189,75 @@ namespace MongoExample.Controllers
 
             await _mongoDBService.UpdateOrder(order);
             return Ok("Order cancelled successfully.");
+        }
+
+        //Request to cancel an order by customer after Dispatched
+        [HttpPut("request-to-cancel-order/{orderId}")]
+        public async Task<IActionResult> RequestToCancelOrder(string orderId, CancelOrderRequestDTO cancelOrderRequestDTO)
+        {
+            //validate token
+            var token = Request.Headers["Authorization"];
+            if (token.Count == 0)
+            {
+                return Unauthorized("Token is required.");
+            }
+
+            var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+            if (user == null)
+            {
+                return Unauthorized("Invalid token.");
+            }
+
+            //Validate necessary fields
+            if (orderId == null || cancelOrderRequestDTO.Note == null)
+            {
+                return BadRequest("Missing required fields.");
+            }
+            // Retrieve order details
+            var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+            // Verify the order
+            if (order == null || order.OrderId != orderId)
+            {
+                return NotFound("Order not found or order ID does not match.");
+            }
+
+            // Check if the order is already dispatched
+            if (order.Status != server.Models.OrderStatus.Dispatched)
+            {
+                return BadRequest("Order not dispatched. Cannot request to cancel.");
+            }
+
+            // Update the order status to RequestToCancel
+            order.RequestToCancel = true;
+            order.StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+            order.Note = cancelOrderRequestDTO.Note;
+
+            //Add to Notification
+            var notification = await _mongoDBService.CreateNotification(new Notification
+            {
+                Message = "Request to cancel order",
+                Date = DateTime.Now,
+                Read = false,
+                UserId = order.UserId
+            });
+
+            if (notification == null)
+            {
+                return BadRequest("Failed to add notification.");
+            }
+
+            //Send email notification
+            var userDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+            if (userDetail != null)
+            {
+                await _emailService.SendEmailAsync(userDetail.Email, "Request to cancel order", "Your request to cancel the order has been received.");
+            }
+
+            await _mongoDBService.UpdateOrder(order);
+            return Ok("Request to cancel order sent successfully.");
         }
     }
 }
