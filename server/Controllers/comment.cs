@@ -29,6 +29,34 @@ public class CommentController : ControllerBase
     }
   }
 
+  [HttpGet("customer/{customerId:length(24)}")]
+  public async Task<IActionResult> GetCustomerSpecificComments(string customerId)
+  {
+    try
+    {
+      var comments = await _mongoDBService.GetCustomerSpecificCommentsAsync(customerId);
+      return Ok(comments);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
+  [HttpGet("vender/{venderId:length(24)}")]
+  public async Task<IActionResult> GetVenderSpecificComments(string venderId)
+  {
+    try
+    {
+      var comments = await _mongoDBService.GetVenderSpecificCommentsAsync(venderId);
+      return Ok(comments);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
   [HttpGet("{id:length(24)}")]
   public async Task<ActionResult<Comments>> Get(string id)
   {

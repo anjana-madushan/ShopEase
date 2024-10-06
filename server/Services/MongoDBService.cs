@@ -19,7 +19,7 @@ namespace server.Services
 
         // Initialize the collections
         _productCollection = database.GetCollection<Product>(mongoDBConfigs.Value.MongoProductCollection);
-        _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoProductCollection);
+        _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoCommentCollection);
         // _petCollection = database.GetCollection<Pet>(mongoDBConfigs.Value.MongoPetCollection);
 
         // Log a message when connected
@@ -89,6 +89,16 @@ namespace server.Services
 
     public async Task<Comments?> GetCommentAsync(string id) =>
         await _commentCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    public async Task<List<Comments>> GetCustomerSpecificCommentsAsync(string customerId)
+    {
+      return await _commentCollection.Find(x => x.CustomerId == customerId).ToListAsync();
+    }
+
+    public async Task<List<Comments>> GetVenderSpecificCommentsAsync(string venderId)
+    {
+      return await _commentCollection.Find(x => x.VendorId == venderId).ToListAsync();
+    }
 
     public async Task UpdateCommentAsync(string id, Comments updatedComment) =>
         await _commentCollection.ReplaceOneAsync(x => x.Id == id, updatedComment);
