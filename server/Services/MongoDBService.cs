@@ -61,6 +61,12 @@ namespace server.Services
       return await _productCollection.Find(filter).ToListAsync();
     }
 
+    public async Task<List<Product>> SearchProduct(string productName)
+    {
+      var filter = Builders<Product>.Filter.Regex("Name", new BsonRegularExpression($"^{productName}", "i"));
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
     public async Task<List<Product>> GetProductsCategoryBasedAsync(string category)
     {
       var filter = Builders<Product>.Filter.Eq(p => p.Category, category);

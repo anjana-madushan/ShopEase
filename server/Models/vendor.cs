@@ -18,7 +18,4 @@ public class Vendor
 
   [BsonElement("email")]
   public string Email { get; set; }
-
-  [BsonElement("products")]
-  public List<Product> ProductsCreated { get; set; } = new List<Product>();
 }

@@ -85,7 +85,39 @@ public class ProductController : ControllerBase
   {
     try
     {
+      var userId = await AuthorizeCustomerAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
       var products = await _mongoDBService.GetProductsCategoryBasedAsync(category);
+      if (products.Count == 0)
+      {
+        return NotFound(new { Message = "Nothing to show in this category" });
+      }
+      return Ok(products);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
+  [HttpGet("search")]
+  public async Task<IActionResult> Search(string productName)
+  {
+    try
+    {
+      var userId = await AuthorizeCustomerAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+      if (string.IsNullOrWhiteSpace(productName))
+      {
+        return BadRequest("Product name cannot be empty.");
+      }
+      var products = await _mongoDBService.SearchProduct(productName);
       if (products.Count == 0)
       {
         return NotFound(new { Message = "Nothing to show in this category" });
