@@ -289,6 +289,34 @@ namespace MongoExample.Controllers
             }
         }
 
+        //Get all orders where cancelled is true but cancel request is false
+        [HttpGet("cancelled-orders")]
+        public async Task<IActionResult> GetAllCancelledOrders()
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                var orders = await _mongoDBService.GetCancelledOrdersAsync();
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         //Update the status of order to delivered by admin || vendor || csr
         [HttpPut("order-status-delivered/{orderId}")]
         public async Task<IActionResult> UpdateOrderStatusDelivered(string orderId, StatusUpdateDTO statusUpdateDTO)
@@ -478,6 +506,176 @@ namespace MongoExample.Controllers
 
                 await _mongoDBService.UpdateOrder(order);
                 return Ok("Order status updated to dispatched successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        //Update  Order status to Ready by vendor 
+        [HttpPut("order-status-ready/{orderId}")]
+        public async Task<IActionResult> UpdateOrderStatusReady(string orderId, StatusUpdateDTO statusUpdateDTO)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate necessary fields
+                if (orderId == null || statusUpdateDTO.Role == null || statusUpdateDTO.userId == null)
+                {
+                    return BadRequest("Missing required fields.");
+                }
+
+                // Retrieve order details
+                var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+                // Verify the order
+                if (order == null || order.OrderId != orderId)
+                {
+                    return NotFound("Order not found or order ID does not match.");
+                }
+
+                // Check if the order is already ready
+                if (order.Status == server.Models.OrderStatus.Ready)
+                {
+                    return BadRequest("Order already ready.");
+                }
+
+                dynamic userDetail = null;
+                //Verify the user role
+                if (statusUpdateDTO.Role == "vendor")
+                {
+                    userDetail = await _mongoDBService.GetVendorByIdAsync(statusUpdateDTO.userId);
+                }
+                else
+                {
+                    return BadRequest("Invalid role.");
+                }
+
+                // Verify the user
+                if (userDetail == null || userDetail.Id != statusUpdateDTO.userId)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                // Update the order status to Ready
+                order.Status = server.Models.OrderStatus.Ready;
+                order.StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+
+                //Add to Notification
+                var notification = await _mongoDBService.CreateNotification(new Notification
+                {
+                    Message = "Order ready",
+                    Date = DateTime.Now,
+                    Read = false,
+                    UserId = order.UserId
+                });
+
+                //Send email notification
+                var customerDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+                await _mongoDBService.UpdateOrder(order);
+                return Ok("Order status updated to ready successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        //Approve a request to cancel an order by  csr
+        [HttpPut("approve-request-to-cancel-order/{orderId}")]
+        public async Task<IActionResult> ApproveRequestToCancelOrder(string orderId, StatusUpdateDTO statusUpdateDTO)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate necessary fields
+                if (orderId == null || statusUpdateDTO.Role == null || statusUpdateDTO.userId == null)
+                {
+                    return BadRequest("Missing required fields.");
+                }
+
+                // Retrieve order details
+                var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+                // Verify the order
+                if (order == null || order.OrderId != orderId)
+                {
+                    return NotFound("Order not found or order ID does not match.");
+                }
+
+                // Check if the order is already cancelled
+                if (order.Status == server.Models.OrderStatus.Cancelled)
+                {
+                    return BadRequest("Order already cancelled.");
+                }
+
+                dynamic userDetail = null;
+                //Verify the user role
+                if (statusUpdateDTO.Role == "csr")
+                {
+                    userDetail = await _mongoDBService.GetCSRByIdAsync(statusUpdateDTO.userId);
+                }
+                else
+                {
+                    return BadRequest("Invalid role.");
+                }
+
+                // Verify the user
+                if (userDetail == null || userDetail.Id != statusUpdateDTO.userId)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                // Update the order status to Cancelled
+                order.Status = server.Models.OrderStatus.Cancelled;
+                order.StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+                order.CancelledOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+                order.CancelledBy = statusUpdateDTO.userId;
+                order.Cancelled = true;
+                order.RequestToCancel = false;
+
+                //Add to Notification
+                var notification = await _mongoDBService.CreateNotification(new Notification
+                {
+                    Message = "Order cancelled",
+                    Date = DateTime.Now,
+                    Read = false,
+                    UserId = order.UserId
+                });
+
+                //Send email notification
+                var customerDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+                await _mongoDBService.UpdateOrder(order);
+                return Ok("Order status updated to cancelled successfully.");
             }
             catch (Exception ex)
             {

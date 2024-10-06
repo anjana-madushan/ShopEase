@@ -418,6 +418,12 @@ namespace server.Services
       return await _orderCollection.Find(x => x.RequestToCancel == true).ToListAsync();
     }
 
+    //Get All Cancelled Orders where Request to cancel is false and Cancelled is true
+    public async Task<List<Order>> GetCancelledOrdersAsync()
+    {
+      return await _orderCollection.Find(x => x.RequestToCancel == false && x.Cancelled == true).ToListAsync();
+    }
+
     //Add Notification
     public async Task<Notification> CreateNotification(Notification notification)
     {
