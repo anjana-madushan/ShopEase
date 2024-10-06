@@ -8,7 +8,7 @@ namespace server.Services
   public class MongoDBService
   {
     private readonly IMongoCollection<Product> _productCollection;
-    // private readonly IMongoCollection<Pet> _petCollection;
+    private readonly IMongoCollection<Comments> _commentCollection;
 
     public MongoDBService(IOptions<MongoDBConfig> mongoDBConfigs)
     {
@@ -19,6 +19,7 @@ namespace server.Services
 
         // Initialize the collections
         _productCollection = database.GetCollection<Product>(mongoDBConfigs.Value.MongoProductCollection);
+        _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoProductCollection);
         // _petCollection = database.GetCollection<Pet>(mongoDBConfigs.Value.MongoPetCollection);
 
         // Log a message when connected
@@ -73,6 +74,31 @@ namespace server.Services
 
       var result = await _productCollection.UpdateOneAsync(filter, update);
       return result.ModifiedCount > 0;
+    }
+
+    //Comment Methods
+    public async Task CreateCommentAndRate(Comments comment)
+    {
+      await _commentCollection.InsertOneAsync(comment);
+    }
+
+    public async Task<List<Comments>> GetCommentsAsync()
+    {
+      return await _commentCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    public async Task<Comments?> GetCommentAsync(string id) =>
+        await _commentCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    public async Task UpdateCommentAsync(string id, Comments updatedComment) =>
+        await _commentCollection.ReplaceOneAsync(x => x.Id == id, updatedComment);
+
+
+    public async Task<bool> DeleteCommentAsync(string id)
+    {
+      FilterDefinition<Comments> filter = Builders<Comments>.Filter.Eq("Id", id);
+      var result = await _commentCollection.DeleteOneAsync(filter);
+      return result.DeletedCount > 0;
     }
 
     // Pet methods
