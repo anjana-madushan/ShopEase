@@ -63,14 +63,20 @@ namespace server.Services
 
     public async Task<List<Product>> SearchProduct(string productName)
     {
-      var filter = Builders<Product>.Filter.Regex("Name", new BsonRegularExpression($"^{productName}", "i"));
-      return await _productCollection.Find(filter).ToListAsync();
+      var filterBuilder = Builders<Product>.Filter;
+      var nameFilter = filterBuilder.Regex("ProductName", new BsonRegularExpression($"^{productName}", "i"));
+      var activeFilter = filterBuilder.Eq("IsActive", true);
+      var combinedFilter = filterBuilder.And(nameFilter, activeFilter);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
     }
 
     public async Task<List<Product>> GetProductsCategoryBasedAsync(string category)
     {
-      var filter = Builders<Product>.Filter.Eq(p => p.Category, category);
-      return await _productCollection.Find(filter).ToListAsync();
+      var filterBuilder = Builders<Product>.Filter;
+      var categoryFilter = Builders<Product>.Filter.Eq(p => p.Category, category);
+      var activeFilter = filterBuilder.Eq("IsActive", true);
+      var combinedFilter = filterBuilder.And(categoryFilter, activeFilter);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
     }
 
     public async Task<Product?> GetProductAsync(string id) =>
