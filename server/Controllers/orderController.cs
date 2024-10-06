@@ -288,5 +288,201 @@ namespace MongoExample.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        //Update the status of order to delivered by admin || vendor || csr
+        [HttpPut("order-status-delivered/{orderId}")]
+        public async Task<IActionResult> UpdateOrderStatusDelivered(string orderId, StatusUpdateDTO statusUpdateDTO)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate necessary fields
+                if (orderId == null)
+                {
+                    return BadRequest("Missing required fields.");
+                }
+
+                // Retrieve order details
+                var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+                // Verify the order
+                if (order == null || order.OrderId != orderId)
+                {
+                    return NotFound("Order not found or order ID does not match.");
+                }
+
+                // Check if the order is already delivered
+                if (order.Status == server.Models.OrderStatus.Delivered)
+                {
+                    return BadRequest("Order already delivered.");
+                }
+
+                dynamic userDetail = null;
+                //Verify the user role
+                if (statusUpdateDTO.Role == "admin")
+                {
+                    userDetail = await _mongoDBService.GetAdminByIdAsync(statusUpdateDTO.userId);
+                }
+                else if (statusUpdateDTO.Role == "vendor")
+                {
+                    userDetail = await _mongoDBService.GetVendorByIdAsync(statusUpdateDTO.userId);
+                }
+                else if (statusUpdateDTO.Role == "csr")
+                {
+                    userDetail = await _mongoDBService.GetCSRByIdAsync(statusUpdateDTO.userId);
+                }
+                else
+                {
+                    return BadRequest("Invalid role.");
+                }
+
+                // Verify the user
+                if (userDetail == null || userDetail.Id != statusUpdateDTO.userId)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                //Get Customer details
+                var customerDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+                if (customerDetail == null)
+                {
+                    return BadRequest("Customer not found.");
+                }
+
+                //Check if request to cancel is true
+                if (order.RequestToCancel == true)
+                {
+                    return BadRequest("Order has been requested to cancel. Cannot deliver.");
+                }
+
+                // Update the order status to Delivered
+                order.Status = server.Models.OrderStatus.Delivered;
+                order.StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+
+                //Add to Notification
+                var notification = await _mongoDBService.CreateNotification(new Notification
+                {
+                    Message = "Order delivered",
+                    Date = DateTime.Now,
+                    Read = false,
+                    UserId = order.UserId
+                });
+
+                //Send email notification
+                await _emailService.SendEmailAsync(customerDetail.Email, "Request to cancel order", "Your request to cancel the order has been received.");
+
+                await _mongoDBService.UpdateOrder(order);
+                return Ok("Order status updated to delivered successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        //Update Order to Dispatched by admin || vendor || csr
+        [HttpPut("order-status-dispatched/{orderId}")]
+        public async Task<IActionResult> UpdateOrderStatusDispatched(string orderId, StatusUpdateDTO statusUpdateDTO)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate necessary fields
+                if (orderId == null || statusUpdateDTO.Role == null || statusUpdateDTO.userId == null)
+                {
+                    return BadRequest("Missing required fields.");
+                }
+
+                // Retrieve order details
+                var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+                // Verify the order
+                if (order == null || order.OrderId != orderId)
+                {
+                    return NotFound("Order not found or order ID does not match.");
+                }
+
+                // Check if the order is already dispatched
+                if (order.Status == server.Models.OrderStatus.Dispatched)
+                {
+                    return BadRequest("Order already dispatched.");
+                }
+
+                dynamic userDetail = null;
+                //Verify the user role
+                if (statusUpdateDTO.Role == "admin")
+                {
+                    userDetail = await _mongoDBService.GetAdminByIdAsync(statusUpdateDTO.userId);
+                }
+                else if (statusUpdateDTO.Role == "vendor")
+                {
+                    userDetail = await _mongoDBService.GetVendorByIdAsync(statusUpdateDTO.userId);
+                }
+                else if (statusUpdateDTO.Role == "csr")
+                {
+                    userDetail = await _mongoDBService.GetCSRByIdAsync(statusUpdateDTO.userId);
+                }
+                else
+                {
+                    return BadRequest("Invalid role.");
+                }
+
+                // Verify the user
+                if (userDetail == null || userDetail.Id != statusUpdateDTO.userId)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                // Update the order status to Dispatched
+                order.Status = server.Models.OrderStatus.Dispatched;
+                order.StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+
+                //Add to Notification
+                var notification = await _mongoDBService.CreateNotification(new Notification
+                {
+                    Message = "Order dispatched",
+                    Date = DateTime.Now,
+                    Read = false,
+                    UserId = order.UserId
+                });
+
+                //Send email notification
+                var customerDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+                await _mongoDBService.UpdateOrder(order);
+                return Ok("Order status updated to dispatched successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
