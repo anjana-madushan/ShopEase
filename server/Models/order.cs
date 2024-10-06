@@ -11,7 +11,8 @@ public enum OrderStatus
     Processing,
     Ready,
     Dispatched,
-    Delivered
+    Delivered,
+    Cancelled
 }
 
 // Defined a class for ProductDetails with Price and Quantity properties

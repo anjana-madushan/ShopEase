@@ -400,11 +400,34 @@ namespace server.Services
     public async Task<Order?> GetOrderByOrderIdAsync(string orderId) =>
         await _orderCollection.Find(x => x.OrderId == orderId).FirstOrDefaultAsync();
 
+    //Update Order
+    public async Task UpdateOrder(Order order)
+    {
+      var filter = Builders<Order>.Filter.Eq(a => a.Id, order.Id);
+      var updateResult = await _orderCollection.ReplaceOneAsync(filter, order);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"Order with ID {order.Id} not found.");
+      }
+    }
+
     //Add Notification
     public async Task<Notification> CreateNotification(Notification notification)
     {
       await _notificationCollection.InsertOneAsync(notification);
       return notification;
+    }
+
+    //Get Notification by ID
+    public async Task<Notification?> GetNotificationByIdAsync(string id) =>
+        await _notificationCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    //Delete Notification
+    public async Task DeleteNotificationAsync(string notificationId)
+    {
+      FilterDefinition<Notification> filter = Builders<Notification>.Filter.Eq("Id", notificationId);
+      await _notificationCollection.DeleteOneAsync(filter);
     }
   }
 }

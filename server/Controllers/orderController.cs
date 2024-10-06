@@ -6,20 +6,23 @@ using server.Services;
 using server.Models;
 using server.DTOs;
 using Microsoft.Extensions.Options;
+using YourNamespace.Services;
 
 namespace MongoExample.Controllers
 {
-    [Route("api/order")]
+    [Route("api/orders")]
     [ApiController]
     public class OrderController : ControllerBase
     {
         private readonly MongoDBService _mongoDBService;
         private readonly JwtSettings _jwtSettings;
+        private readonly EmailService _emailService;
 
-        public OrderController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings)
+        public OrderController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, EmailService emailService)
         {
             _mongoDBService = mongoDBService;
             _jwtSettings = jwtSettings.Value;
+            _emailService = emailService;
         }
 
         // Create a new Order from the orderDTO
@@ -39,8 +42,6 @@ namespace MongoExample.Controllers
             {
                 return Unauthorized("Invalid token.");
             }
-
-
 
             //Validate necessary fields
             if (orderDTO.ShippingAddress == null || orderDTO.BillingAddress == null || orderDTO.Email == null || orderDTO.Products == null || orderDTO.TotalPrice == 0 || orderDTO.TotalQty == 0 || orderDTO.UserId == null)
@@ -89,6 +90,20 @@ namespace MongoExample.Controllers
                 return BadRequest("Email does not exist.");
             }
 
+            //Add to Notification
+            var notification = await _mongoDBService.CreateNotification(new Notification
+            {
+                Message = "Order created",
+                Date = DateTime.Now,
+                Read = false,
+                UserId = orderDTO.UserId
+            });
+
+            //Send email notification
+            if (userDetail != null)
+            {
+                await _emailService.SendEmailAsync(userDetail.Email, "Order created", "Your order has been created.");
+            }
 
             // Create a new Order
             var order = new Order
@@ -112,6 +127,68 @@ namespace MongoExample.Controllers
 
             await _mongoDBService.CreateOrder(order);
             return Ok(order);
+        }
+
+        //Cancel an order by customer before Dispatched
+        [HttpPut("cancel-order/{orderId}")]
+        public async Task<IActionResult> CancelOrder(string orderId)
+        {
+            //validate token
+            var token = Request.Headers["Authorization"];
+            if (token.Count == 0)
+            {
+                return Unauthorized("Token is required.");
+            }
+
+            var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+            if (user == null)
+            {
+                return Unauthorized("Invalid token.");
+            }
+
+            //Validate necessary fields
+            if (orderId == null)
+            {
+                return BadRequest("Missing required fields.");
+            }
+
+            // Retrieve order details
+            var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+            // Verify the order
+            if (order == null || order.OrderId != orderId)
+            {
+                return NotFound("Order not found or order ID does not match.");
+            }
+
+            // Check if the order is already dispatched
+            if (order.Status == server.Models.OrderStatus.Dispatched)
+            {
+                return BadRequest("Order already dispatched. Cannot cancel.");
+            }
+
+            // Update the order status to Cancelled
+            order.Status = server.Models.OrderStatus.Cancelled;
+            order.StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+            order.CancelledOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+            order.CancelledBy = order.UserId;
+            order.Cancelled = true;
+            
+            //Add to Notification
+            var notification = await _mongoDBService.CreateNotification(new Notification
+            {
+                Message = "Order cancelled",
+                Date = DateTime.Now,
+                Read = false,
+                UserId = order.UserId
+            });
+
+            //Send email notification
+            var userDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+            await _mongoDBService.UpdateOrder(order);
+            return Ok("Order cancelled successfully.");
         }
     }
 }
