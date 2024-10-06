@@ -45,7 +45,7 @@
             android:layout_margin="20dp"
             android:layout_weight="1"
             android:contentDescription="@string/app_logo"
-            app:layout_constraintBottom_toTopOf="@+id/edt_email"
+            app:layout_constraintBottom_toTopOf="@+id/signIn_edt_email"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txt_slogan"
@@ -53,7 +53,7 @@
 
 
         <EditText
-            android:id="@+id/edt_email"
+            android:id="@+id/signIn_edt_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
@@ -64,12 +64,12 @@
             android:inputType="textEmailAddress"
             android:padding="16dp"
             android:textColorHint="@color/primary_darker"
-            app:layout_constraintBottom_toTopOf="@+id/edt_password"
+            app:layout_constraintBottom_toTopOf="@+id/signIn_edt_password"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <EditText
-            android:id="@+id/edt_password"
+            android:id="@+id/signIn_edt_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
@@ -80,12 +80,12 @@
             android:inputType="textPassword"
             android:padding="16dp"
             android:textColorHint="@color/primary_darker"
-            app:layout_constraintBottom_toTopOf="@+id/btn_signIn"
+            app:layout_constraintBottom_toTopOf="@+id/signIn_btn_signIn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <Button
-            android:id="@+id/btn_signIn"
+            android:id="@+id/signIn_btn_signIn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
@@ -119,5 +119,14 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:src="@drawable/icon_settings"
+            app:backgroundTint="@color/primary_light" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

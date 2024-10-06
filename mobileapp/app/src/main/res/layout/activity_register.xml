@@ -36,7 +36,7 @@
             android:layout_height="50dp" />
 
         <EditText
-            android:id="@+id/edt_email"
+            android:id="@+id/signIn_edt_email"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="20dp"

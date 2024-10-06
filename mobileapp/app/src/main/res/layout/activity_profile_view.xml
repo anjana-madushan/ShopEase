@@ -44,7 +44,7 @@
         android:layout_height="0dp"
         android:layout_margin="20dp"
         android:contentDescription="@string/non_descriptive_image"
-        app:layout_constraintBottom_toTopOf="@+id/edt_email"
+        app:layout_constraintBottom_toTopOf="@+id/signIn_edt_email"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -53,7 +53,7 @@
 
 
     <EditText
-        android:id="@+id/edt_email"
+        android:id="@+id/signIn_edt_email"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="10dp"
