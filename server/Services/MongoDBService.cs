@@ -436,6 +436,12 @@ namespace server.Services
       return await _orderCollection.Find(x => x.UserId == userId).ToListAsync();
     }
 
+    //Get orders cancelled by csr by CSR ID
+    public async Task<List<Order>> GetOrdersCancelledByCSRAsync(string csrId)
+    {
+      return await _orderCollection.Find(x => x.CancelledBy == csrId).ToListAsync();
+    }
+
     //Add Notification
     public async Task<Notification> CreateNotification(Notification notification)
     {

@@ -816,7 +816,7 @@ namespace MongoExample.Controllers
                 return BadRequest(ex.Message);
             }
         }
-  
+
         //Get all orders by user
         [HttpGet("orders-by-user/{userId}")]
         public async Task<IActionResult> GetOrdersByUser(string userId)
@@ -859,7 +859,152 @@ namespace MongoExample.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        //Get orders cancelled by CSR  by id
+        [HttpGet("orders-cancelled-by-csr/{csrId}")]
+        public async Task<IActionResult> GetOrdersCancelledByCSR(string csrId)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
 
-  
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate necessary fields
+                if (csrId == null)
+                {
+                    return BadRequest("Missing required fields.");
+                }
+
+                //Verify the user
+                var userDetail = await _mongoDBService.GetCSRByIdAsync(csrId);
+
+                if (userDetail == null || userDetail.Id != csrId)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                var orders = await _mongoDBService.GetOrdersCancelledByCSRAsync(csrId);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        //modify order before dispatched
+        [HttpPatch("modify-order/{orderId}")]
+        public async Task<IActionResult> ModifyOrder(string orderId, [FromBody] UpdateOrderDTO orderDTO)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Check if order is dispatched
+                var orderDispatched = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+                if (orderDispatched.Status == server.Models.OrderStatus.Dispatched)
+                {
+                    return BadRequest("Order already dispatched. Cannot modify.");
+                }
+
+                // Retrieve order details
+                var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+                // Verify the order
+                if (order == null || order.OrderId != orderId)
+                {
+                    return NotFound("Order not found or order ID does not match.");
+                }
+
+                // Check if the order is already dispatched
+                if (order.Status == server.Models.OrderStatus.Dispatched)
+                {
+                    return BadRequest("Order already dispatched. Cannot modify.");
+                }
+
+                // Retrieve user details
+                var userDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+                // Verify the user
+                if (userDetail == null)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                // Perform partial updates for provided fields
+                if (!string.IsNullOrEmpty(orderDTO.ShippingAddress))
+                {
+                    order.ShippingAddress = orderDTO.ShippingAddress;
+                }
+
+                if (!string.IsNullOrEmpty(orderDTO.BillingAddress))
+                {
+                    order.BillingAddress = orderDTO.BillingAddress;
+                }
+
+                if (!string.IsNullOrEmpty(orderDTO.Email))
+                {
+                    order.Email = orderDTO.Email;
+                }
+
+                if (orderDTO.Products != null && orderDTO.Products.Count > 0)
+                {
+                    // Check if the product exists
+                    foreach (var product in orderDTO.Products)
+                    {
+                        var productDetail = await _mongoDBService.GetProductAsync(product.Key);
+                        if (productDetail == null || productDetail.Id != product.Key)
+                        {
+                            return NotFound("Product not found or product ID does not match.");
+                        }
+                    }
+
+                    // Update the products list and totals
+                    order.Products = orderDTO.Products.ToDictionary(
+                        x => x.Key,
+                        x => new ProductDetails
+                        {
+                            Price = x.Value.Price,
+                            Quantity = x.Value.Quantity
+                        }
+                    );
+                    order.TotalPrice = (decimal)orderDTO.TotalPrice;
+                    order.TotalQty = (int)orderDTO.TotalQty;
+                }
+
+                await _mongoDBService.UpdateOrder(order);
+
+                return Ok("Order details updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
     }
 }

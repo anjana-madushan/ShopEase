@@ -1,0 +1,15 @@
+using System;
+using System.Collections.Generic;
+
+namespace server.DTOs
+{
+    public class UpdateOrderDTO
+    {
+        public string? ShippingAddress { get; set; }
+        public string? BillingAddress { get; set; }
+        public string? Email { get; set; }
+        public Dictionary<string, ProductDetailsDTO>? Products { get; set; } = new Dictionary<string, ProductDetailsDTO>();
+        public decimal? TotalPrice { get; set; }
+        public int? TotalQty { get; set; }
+    }
+}
