@@ -1,31 +1,47 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Options;
-using MimeKit;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using System.Threading.Tasks;
 
-public class EmailService
+namespace YourNamespace.Services
 {
-  private readonly EmailSettings _emailSettings;
-
-  public EmailService(IOptions<EmailSettings> emailSettings)
+  public class EmailService
   {
-    _emailSettings = emailSettings.Value;
-  }
-  public async Task SendEmailAsync(string to, string subject, string body)
-  {
-    var message = new MimeMessage();
-    message.From.Add(new MailboxAddress("Shop_Ease", _emailSettings.FromEmail));
-    message.To.Add(new MailboxAddress("", to));
-    message.Subject = subject;
-    message.Body = new TextPart("html") { Text = body };
+    private readonly SendGridClient _client;
+    private readonly EmailAddress _from;
 
-    using (var client = new SmtpClient())
+    public EmailService(string apiKey, string senderEmail, string senderName)
     {
-      await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort, SecureSocketOptions.StartTls);
-      await client.AuthenticateAsync(_emailSettings.SmtpUsername, _emailSettings.SmtpPassword);
-      await client.SendAsync(message);
-      await client.DisconnectAsync(true);
+      _client = new SendGridClient(apiKey);
+      _from = new EmailAddress(senderEmail, senderName);
+
+    }
+
+    public async Task SendEmailAsync(string recipientEmail, string subject, string message)
+    {
+      try
+      {
+        var to = new EmailAddress(recipientEmail);
+        var plainTextContent = message;
+
+        // Ensure this URL points to where your image is hosted publicly
+        var imageUrl = "https://drive.google.com/file/d/1j8rmvrv_k1PlisQwaSWy7Sj-ZnmpA0eP/view?usp=sharing";
+        var htmlContent = $"<strong>{message}</strong><br/><img src='{imageUrl}' alt='ShopEase' />";
+
+        var msg = MailHelper.CreateSingleEmail(_from, to, subject, plainTextContent, htmlContent);
+
+        var response = await _client.SendEmailAsync(msg);
+        Console.WriteLine($"Response status code: {response.StatusCode}");
+        Console.WriteLine($"Response body: {await response.Body.ReadAsStringAsync()}");
+        if (!response.IsSuccessStatusCode)
+        {
+          Console.WriteLine("Failed to send email.");
+        }
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"An error occurred while sending email: {ex.Message}");
+        throw;
+      }
     }
   }
 }

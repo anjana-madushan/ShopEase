@@ -9,6 +9,13 @@ namespace server.Services
   {
     private readonly IMongoCollection<Product> _productCollection;
     private readonly IMongoCollection<Comments> _commentCollection;
+    private readonly IMongoCollection<Admin> _adminCollection;
+    private readonly IMongoCollection<CSR> _csrCollection;
+
+    private readonly IMongoCollection<Users> _customerCollection;
+
+    private readonly IMongoCollection<Vendor> _vendorCollection;
+
 
     public MongoDBService(IOptions<MongoDBConfig> mongoDBConfigs)
     {
@@ -21,6 +28,10 @@ namespace server.Services
         _productCollection = database.GetCollection<Product>(mongoDBConfigs.Value.MongoProductCollection);
         _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoCommentCollection);
         // _petCollection = database.GetCollection<Pet>(mongoDBConfigs.Value.MongoPetCollection);
+        _adminCollection = database.GetCollection<Admin>(mongoDBConfigs.Value.MongoAdminCollection);
+        _csrCollection = database.GetCollection<CSR>(mongoDBConfigs.Value.MongoCSRCollection);
+        _vendorCollection = database.GetCollection<Vendor>(mongoDBConfigs.Value.MongoVendorCollection);
+        _customerCollection = database.GetCollection<Users>(mongoDBConfigs.Value.MongoCustomerCollection);
 
         // Log a message when connected
         Console.WriteLine("Successfully connected to MongoDB");
@@ -111,27 +122,319 @@ namespace server.Services
       return result.DeletedCount > 0;
     }
 
-    // Pet methods
-    // public async Task<List<Pet>> GetPetsAsync()
-    // {
-    //   return await _petCollection.Find(new BsonDocument()).ToListAsync();
-    // }
+    //User Management Methods
 
-    // public async Task<Pet?> GetPetAsync(string id) =>
-    //     await _petCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+    // Create admin
+    public async Task<Admin> CreateAdminAsync(Admin admin)
+    {
+      await _adminCollection.InsertOneAsync(admin);
+      return admin;
+    }
 
-    // public async Task CreatePetAsync(Pet pet)
-    // {
-    //   await _petCollection.InsertOneAsync(pet);
-    // }
+    //Get admin by ID
+    public async Task<Admin?> GetAdminByIdAsync(string id) =>
+        await _adminCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
-    // public async Task UpdatePetAsync(string id, Pet updatedPet) =>
-    //     await _petCollection.ReplaceOneAsync(x => x.Id == id, updatedPet);
+    //Get admin by email
+    public async Task<Admin?> GetAdminByEmailAsync(string email) =>
+        await _adminCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
 
-    // public async Task DeletePetAsync(string id)
-    // {
-    //   FilterDefinition<Pet> filter = Builders<Pet>.Filter.Eq("Id", id);
-    //   await _petCollection.DeleteOneAsync(filter);
-    // }
+    // Update admin by ID
+    public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
+    {
+      var filter = Builders<Admin>.Filter.Eq(a => a.Id, adminId);
+      var updateResult = await _adminCollection.ReplaceOneAsync(filter, updatedAdmin);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"Admin with ID {adminId} not found.");
+      }
+    }
+
+    // Update CSR by ID
+    public async Task UpdateCSRAsync(string csrId, Dictionary<string, object> updatedCSR)
+    {
+      var filter = Builders<CSR>.Filter.Eq(a => a.Id, csrId);
+      var update = Builders<CSR>.Update
+          .Set("Username", updatedCSR["Username"])
+          .Set("Email", updatedCSR["Email"])
+          .Set("Password", updatedCSR["Password"]);
+
+      var updateResult = await _csrCollection.UpdateOneAsync(filter, update);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"CSR with ID {csrId} not found.");
+      }
+    }
+
+    // Update Vendor by ID
+    public async Task UpdateVendorAsync(string vendorId, Dictionary<string, object> updatedVendor)
+    {
+      var filter = Builders<Vendor>.Filter.Eq(a => a.Id, vendorId);
+      var update = Builders<Vendor>.Update
+          .Set("Username", updatedVendor["Username"])
+          .Set("Email", updatedVendor["Email"])
+          .Set("Password", updatedVendor["Password"]);
+
+      var updateResult = await _vendorCollection.UpdateOneAsync(filter, update);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"Vendor with ID {vendorId} not found.");
+      }
+    }
+
+    // Update Customer by ID
+    public async Task UpdateCustomerAsync(string customerId, Dictionary<string, object> updatedCustomer)
+    {
+      var filter = Builders<Users>.Filter.Eq(a => a.Id, customerId);
+      var update = Builders<Users>.Update
+          .Set("Username", updatedCustomer["Username"])
+          .Set("Email", updatedCustomer["Email"])
+          .Set("Password", updatedCustomer["Password"]);
+
+      var updateResult = await _customerCollection.UpdateOneAsync(filter, update);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"Customer with ID {customerId} not found.");
+      }
+    }
+
+    //Get CSR by Email
+    public async Task<CSR?> GetCSRByEmailAsync(string email) =>
+        await _csrCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+
+
+    //Create a new CSR
+    public async Task<CSR> CreateCSRAsync(CSR csr)
+    {
+      await _csrCollection.InsertOneAsync(csr);
+      return csr;
+    }
+
+    //Get vendor by email
+    public async Task<Vendor?> GetVendorByEmailAsync(string email) =>
+        await _vendorCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+
+    //Create a new Vendor
+    public async Task<Vendor> CreateVendorAsync(Vendor vendor)
+    {
+      await _vendorCollection.InsertOneAsync(vendor);
+      return vendor;
+    }
+
+    //Sign up for new customer
+    public async Task<Users> CreateCustomerAsync(Users customer)
+    {
+      await _customerCollection.InsertOneAsync(customer);
+      return customer;
+    }
+
+    //Get customer by email
+    public async Task<Users?> GetCustomerByEmailAsync(string email) =>
+        await _customerCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+
+
+    // Update User by ID based on role
+    public async Task<dynamic> UpdateUserAsync(string userId, string role, dynamic updatedUser)
+    {
+
+      // Role-based logic to update user
+      switch (role.ToLower())
+      {
+        case "admin":
+          var admin = await GetAdminByIdAsync(userId);
+          if (admin == null)
+          {
+            throw new Exception($"Admin with ID {userId} not found.");
+          }
+          await UpdateAdminAsync(userId, updatedUser);
+          break;
+
+        case "csr":
+          var csr = await GetCSRByIdAsync(userId);
+          if (csr == null)
+          {
+            throw new Exception($"CSR with ID {userId} not found.");
+          }
+          await UpdateCSRAsync(userId, updatedUser);
+          break;
+
+        case "vendor":
+          var vendor = await GetVendorByIdAsync(userId);
+          if (vendor == null)
+          {
+            throw new Exception($"Vendor with ID {userId} not found.");
+          }
+          await UpdateVendorAsync(userId, updatedUser);
+          break;
+
+        case "customer":
+          var customer = await GetCustomerByIdAsync(userId);
+          if (customer == null)
+          {
+            throw new Exception($"Customer with ID {userId} not found.");
+          }
+          await UpdateCustomerAsync(userId, updatedUser);
+          break;
+
+        default:
+          throw new Exception("Invalid role provided.");
+      }
+
+      // Return the updated user details if necessary (optional, remove if not needed)
+      return updatedUser;
+    }
+
+    // Get CSR by ID
+    public async Task<CSR?> GetCSRByIdAsync(string id) =>
+        await _csrCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    // Get Vendor by ID
+    public async Task<Vendor?> GetVendorByIdAsync(string id) =>
+        await _vendorCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    // Get Customer by ID
+    public async Task<Users?> GetCustomerByIdAsync(string id) =>
+        await _customerCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    //Get all Vendors
+    public async Task<List<Vendor>> GetVendorsAsync()
+    {
+      return await _vendorCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    //Get all Customers
+    public async Task<List<Users>> GetAllCustomersAsync()
+    {
+      return await _customerCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    ///Get all csr
+    public async Task<List<CSR>> GetAllCSRsAsync()
+    {
+      return await _csrCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    //Get all Admins
+    public async Task<List<Admin>> GetAllAdminsAsync()
+    {
+      return await _adminCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    //Update Customer 
+    public async Task UpdateCustomer(string customerId, Users updatedCustomer)
+    {
+      var filter = Builders<Users>.Filter.Eq(a => a.Id, customerId);
+      var updateResult = await _customerCollection.ReplaceOneAsync(filter, updatedCustomer);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"Customer with ID {customerId} not found.");
+      }
+    }
+
+    //Update CSR
+    public async Task UpdateCSR(string csrId, CSR updatedCSR)
+    {
+      var filter = Builders<CSR>.Filter.Eq(a => a.Id, csrId);
+      var updateResult = await _csrCollection.ReplaceOneAsync(filter, updatedCSR);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"CSR with ID {csrId} not found.");
+      }
+    }
+
+    //Get all approved customers
+    public async Task<List<Users>> GetApprovedCustomersAsync()
+    {
+      return await _customerCollection.Find(x => x.ApprovalStatus == true).ToListAsync();
+    }
+
+    //Get all unapproved customers
+    public async Task<List<Users>> GetUnapprovedCustomersAsync()
+    {
+      return await _customerCollection.Find(x => x.ApprovalStatus == false).ToListAsync();
+    }
+
+    //Get all approved customers by ID based on Approved By
+    public async Task<List<Users>> GetApprovedCustomersByIdAsync(string adminId)
+    {
+      return await _customerCollection.Find(x => x.ApprovedBy == adminId).ToListAsync();
+    }
+
+    //Get All deactivated customers
+    public async Task<List<Users>> GetDeactivatedCustomersAsync()
+    {
+      return await _customerCollection.Find(x => x.Deactivated == true).ToListAsync();
+    }
+
+    //Update User Password
+    public async Task UpdateUserPasswordAsync(string userId, string newPassword, string role)
+    {
+      switch (role.ToLower())
+      {
+        case "admin":
+          var admin = await GetAdminByIdAsync(userId);
+          if (admin == null)
+          {
+            throw new Exception($"Admin with ID {userId} not found.");
+          }
+          admin.Password = newPassword;
+          await UpdateAdminAsync(userId, admin);
+          break;
+
+        case "csr":
+          var csr = await GetCSRByIdAsync(userId);
+          if (csr == null)
+          {
+            throw new Exception($"CSR with ID {userId} not found.");
+          }
+          csr.Password = newPassword;
+          await UpdateCSRAsync(userId, csr);
+          break;
+
+        case "vendor":
+          var vendor = await GetVendorByIdAsync(userId);
+          if (vendor == null)
+          {
+            throw new Exception($"Vendor with ID {userId} not found.");
+          }
+          vendor.Password = newPassword;
+          await UpdateVendorAsync(userId, vendor);
+          break;
+
+        case "customer":
+          var customer = await GetCustomerByIdAsync(userId);
+          if (customer == null)
+          {
+            throw new Exception($"Customer with ID {userId} not found.");
+          }
+          customer.Password = newPassword;
+          await UpdateCustomerAsync(userId, customer);
+          break;
+
+        default:
+          throw new Exception("Invalid role provided.");
+      }
+    }
+
+    private async Task UpdateCSRAsync(string userId, CSR csr)
+    {
+      throw new NotImplementedException();
+    }
+
+    private async Task UpdateVendorAsync(string userId, Vendor vendor)
+    {
+      throw new NotImplementedException();
+    }
+
+    private async Task UpdateCustomerAsync(string userId, Users customer)
+    {
+      throw new NotImplementedException();
+    }
   }
 }

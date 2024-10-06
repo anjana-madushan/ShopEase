@@ -53,6 +53,7 @@ wwwroot/js/
 # Environment files
 .env
 *.env.local
+appsettings.json 
 
 # Logs
 *.log
@@ -64,3 +65,4 @@ wwwroot/js/
 *.jfm.*
 
 appsettings.json
+.fake
