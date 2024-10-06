@@ -9,6 +9,10 @@ namespace server.Services
   {
     private readonly IMongoCollection<Product> _productCollection;
     private readonly IMongoCollection<Admin> _adminCollection;
+    private readonly IMongoCollection<Order> _orderCollection;
+
+    private readonly IMongoCollection<Notification> _notificationCollection;
+
     private readonly IMongoCollection<CSR> _csrCollection;
 
     private readonly IMongoCollection<Users> _customerCollection;
@@ -26,6 +30,8 @@ namespace server.Services
         // Initialize the collections
         _productCollection = database.GetCollection<Product>(mongoDBConfigs.Value.MongoProductCollection);
         _adminCollection = database.GetCollection<Admin>(mongoDBConfigs.Value.MongoAdminCollection);
+        _orderCollection = database.GetCollection<Order>(mongoDBConfigs.Value.MongoOrderCollection);
+        _notificationCollection = database.GetCollection<Notification>(mongoDBConfigs.Value.MongoNotificationCollection);
         _csrCollection = database.GetCollection<CSR>(mongoDBConfigs.Value.MongoCSRCollection);
         _vendorCollection = database.GetCollection<Vendor>(mongoDBConfigs.Value.MongoVendorCollection);
         _customerCollection = database.GetCollection<Users>(mongoDBConfigs.Value.MongoCustomerCollection);
@@ -363,19 +369,42 @@ namespace server.Services
       }
     }
 
-        private async Task UpdateCSRAsync(string userId, CSR csr)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task UpdateVendorAsync(string userId, Vendor vendor)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task UpdateCustomerAsync(string userId, Users customer)
-        {
-            throw new NotImplementedException();
-        }
+    private async Task UpdateCSRAsync(string userId, CSR csr)
+    {
+      throw new NotImplementedException();
     }
+
+    private async Task UpdateVendorAsync(string userId, Vendor vendor)
+    {
+      throw new NotImplementedException();
+    }
+
+    private async Task UpdateCustomerAsync(string userId, Users customer)
+    {
+      throw new NotImplementedException();
+    }
+
+    //Add a new order
+    public async Task<Order> CreateOrder(Order order)
+    {
+      await _orderCollection.InsertOneAsync(order);
+      return order;
+    }
+
+    //Get order by ID
+    public async Task<Order?> GetOrderByIdAsync(string id) =>
+        await _orderCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+
+    //Get order by OrderId
+    public async Task<Order?> GetOrderByOrderIdAsync(string orderId) =>
+        await _orderCollection.Find(x => x.OrderId == orderId).FirstOrDefaultAsync();
+
+    //Add Notification
+    public async Task<Notification> CreateNotification(Notification notification)
+    {
+      await _notificationCollection.InsertOneAsync(notification);
+      return notification;
+    }
+  }
 }
