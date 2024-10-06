@@ -430,6 +430,12 @@ namespace server.Services
       return await _orderCollection.Find(new BsonDocument()).ToListAsync();
     }
 
+    //Get order by userId
+    public async Task<List<Order>> GetOrdersByUserIdAsync(string userId)
+    {
+      return await _orderCollection.Find(x => x.UserId == userId).ToListAsync();
+    }
+
     //Add Notification
     public async Task<Notification> CreateNotification(Notification notification)
     {

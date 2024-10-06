@@ -816,5 +816,50 @@ namespace MongoExample.Controllers
                 return BadRequest(ex.Message);
             }
         }
+  
+        //Get all orders by user
+        [HttpGet("orders-by-user/{userId}")]
+        public async Task<IActionResult> GetOrdersByUser(string userId)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate necessary fields
+                if (userId == null)
+                {
+                    return BadRequest("Missing required fields.");
+                }
+
+                //Verify the user
+                var userDetail = await _mongoDBService.GetCustomerByIdAsync(userId);
+
+                if (userDetail == null || userDetail.Id != userId)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                var orders = await _mongoDBService.GetOrdersByUserIdAsync(userId);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+  
     }
 }
