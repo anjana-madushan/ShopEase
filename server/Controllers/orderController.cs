@@ -259,5 +259,34 @@ namespace MongoExample.Controllers
             await _mongoDBService.UpdateOrder(order);
             return Ok("Request to cancel order sent successfully.");
         }
+
+        //Get all requests to cancel orders
+        [HttpGet("requests-to-cancel-order")]
+        public async Task<IActionResult> GetAllRequestsToCancelOrders()
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                var orders = await _mongoDBService.GetRequestToCancelOrdersAsync();
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

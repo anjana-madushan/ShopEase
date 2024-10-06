@@ -412,6 +412,12 @@ namespace server.Services
       }
     }
 
+    //Get All Requests to cancel orders
+    public async Task<List<Order>> GetRequestToCancelOrdersAsync()
+    {
+      return await _orderCollection.Find(x => x.RequestToCancel == true).ToListAsync();
+    }
+
     //Add Notification
     public async Task<Notification> CreateNotification(Notification notification)
     {
