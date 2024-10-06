@@ -424,6 +424,12 @@ namespace server.Services
       return await _orderCollection.Find(x => x.RequestToCancel == false && x.Cancelled == true).ToListAsync();
     }
 
+    //Get all orders
+    public async Task<List<Order>> GetAllOrdersAsync()
+    {
+      return await _orderCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
     //Add Notification
     public async Task<Notification> CreateNotification(Notification notification)
     {

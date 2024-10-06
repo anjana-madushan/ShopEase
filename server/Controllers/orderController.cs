@@ -700,5 +700,121 @@ namespace MongoExample.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        //Reject a request to cancel an order by  csr
+        [HttpPut("reject-request-to-cancel-order/{orderId}")]
+        public async Task<IActionResult> RejectRequestToCancelOrder(string orderId, StatusUpdateDTO statusUpdateDTO)
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate necessary fields
+                if (orderId == null || statusUpdateDTO.Role == null || statusUpdateDTO.userId == null)
+                {
+                    return BadRequest("Missing required fields.");
+                }
+
+                // Retrieve order details
+                var order = await _mongoDBService.GetOrderByOrderIdAsync(orderId);
+
+                // Verify the order
+                if (order == null || order.OrderId != orderId)
+                {
+                    return NotFound("Order not found or order ID does not match.");
+                }
+
+                // Check if the order is already cancelled
+                if (order.Status == server.Models.OrderStatus.Cancelled)
+                {
+                    return BadRequest("Order already cancelled.");
+                }
+
+                dynamic userDetail = null;
+                //Verify the user role
+                if (statusUpdateDTO.Role == "csr")
+                {
+                    userDetail = await _mongoDBService.GetCSRByIdAsync(statusUpdateDTO.userId);
+                }
+                else
+                {
+                    return BadRequest("Invalid role.");
+                }
+
+                // Verify the user
+                if (userDetail == null || userDetail.Id != statusUpdateDTO.userId)
+                {
+                    return NotFound("User not found or user ID does not match.");
+                }
+
+                // Update the order status to RequestToCancel
+                order.RequestToCancel = false;
+                order.StatusUpdatedOn = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+                order.Cancelled = false;
+                order.CancelledOn = null;
+                order.CancelledBy = null;
+                order.Note = null;
+
+                //Add to Notification
+                var notification = await _mongoDBService.CreateNotification(new Notification
+                {
+                    Message = "Request to cancel order rejected",
+                    Date = DateTime.Now,
+                    Read = false,
+                    UserId = order.UserId
+                });
+
+                //Send email notification
+                var customerDetail = await _mongoDBService.GetCustomerByIdAsync(order.UserId);
+
+                await _mongoDBService.UpdateOrder(order);
+                return Ok("Request to cancel order rejected successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        //Get all orders
+        [HttpGet("all-orders")]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                var orders = await _mongoDBService.GetAllOrdersAsync();
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
