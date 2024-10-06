@@ -26,7 +26,70 @@ public class ProductController : ControllerBase
   {
     try
     {
+      var userId = await AuthorizeAdminAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
       var products = await _mongoDBService.GetProductsAsync();
+      return Ok(products);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
+  [HttpGet("customer")]
+  public async Task<IActionResult> GetActiveProducts()
+  {
+    try
+    {
+      var userId = await AuthorizeCustomerAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+
+      var products = await _mongoDBService.GetProductsCustomerAsync();
+      return Ok(products);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
+  [HttpGet("vender")]
+  public async Task<IActionResult> GetLoggedVenderProducts()
+  {
+    try
+    {
+      var userId = await AuthorizeVenderAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+
+      var products = await _mongoDBService.GetProductsVenderAsync(userId);
+      return Ok(products);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
+  [HttpGet("{category}")]
+  public async Task<IActionResult> CategoryBasedSearch(string category)
+  {
+    try
+    {
+      var products = await _mongoDBService.GetProductsCategoryBasedAsync(category);
+      if (products.Count == 0)
+      {
+        return NotFound(new { Message = "Nothing to show in this category" });
+      }
       return Ok(products);
     }
     catch (Exception error)
@@ -65,37 +128,11 @@ public class ProductController : ControllerBase
   {
     try
     {
-      // Validate token
-      var token = Request.Headers["Authorization"];
-      if (token.Count == 0)
-      {
-        return Unauthorized("No token provided.");
-      }
-
-      // Call JWT Service to validate the token
-      var tokenverify = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-      // Check if the token is valid
-      if (tokenverify == null)
-      {
-        return Unauthorized("Invalid token.");
-      }
-
-      // Check if the email is in the token
-      var emailClaim = tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
-      if (emailClaim == null)
-      {
-        return Unauthorized("Invalid token.");
-      }
-
-      // Check if the user is an vendor
-      var adminUser = await _mongoDBService.GetVendorByEmailAsync(emailClaim.Value);
-      if (adminUser == null)
+      var userId = await AuthorizeVenderAsync();
+      if (userId == null)
       {
         return Unauthorized("Unauthorized user.");
       }
-
-      var venderList = await _mongoDBService.GetVendorByIdAsync(tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
 
       // The provided product is valid
       if (!ModelState.IsValid)
@@ -105,6 +142,7 @@ public class ProductController : ControllerBase
 
       var product = new Product
       {
+        VenderId = userId,
         ProductName = productDto.ProductName,
         Price = productDto.Price,
         Category = productDto.Category,
@@ -114,13 +152,8 @@ public class ProductController : ControllerBase
         MinStockLevel = productDto.MinStockLevel
       };
 
-
       // Create the product in the database
       await _mongoDBService.CreateProductAsync(product);
-
-      venderList.ProductsCreated.Add(product);
-      await _mongoDBService.UpdateVendorAsync(venderList.Id, venderList);
-
       return CreatedAtAction(nameof(Get), new { id = product.Id }, product);
     }
     catch (MongoException mongoerror)
@@ -134,42 +167,15 @@ public class ProductController : ControllerBase
   }
 
   [HttpPut("{id:length(24)}")]
-  public async Task<IActionResult> Update(string id, Product updatedProduct)
+  public async Task<IActionResult> Update(string id, ProductDTO updatedProductDto)
   {
     try
     {
-      // Validate token
-      var token = Request.Headers["Authorization"];
-      if (token.Count == 0)
-      {
-        return Unauthorized("No token provided.");
-      }
-
-      // Call JWT Service to validate the token
-      var tokenverify = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-      // Check if the token is valid
-      if (tokenverify == null)
-      {
-        return Unauthorized("Invalid token.");
-      }
-
-      // Check if the email is in the token
-      var emailClaim = tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
-      if (emailClaim == null)
-      {
-        return Unauthorized("Invalid token.");
-      }
-
-      // Check if the user is an vendor
-      var adminUser = await _mongoDBService.GetVendorByEmailAsync(emailClaim.Value);
-      if (adminUser == null)
+      var userId = await AuthorizeVenderAsync();
+      if (userId == null)
       {
         return Unauthorized("Unauthorized user.");
       }
-
-      var venderList = await _mongoDBService.GetVendorByIdAsync(tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
-
       var product = await _mongoDBService.GetProductAsync(id);
 
       if (product is null)
@@ -177,11 +183,26 @@ public class ProductController : ControllerBase
         return NotFound(new { Message = "Product not found" });
       }
 
-      updatedProduct.Id = product.Id;
+      // Ensure that the product belongs to the authorized vendor
+      if (product.VenderId != userId)
+      {
+        return Unauthorized("Unauthorized vendor.");
+      }
+
+      var updatedProduct = new Product
+      {
+        Id = product.Id,
+        VenderId = userId,
+        ProductName = updatedProductDto.ProductName,
+        Price = updatedProductDto.Price,
+        Category = updatedProductDto.Category,
+        Description = updatedProductDto.Description,
+        IsActive = updatedProductDto.IsActive,
+        StockLevel = updatedProductDto.StockLevel,
+        MinStockLevel = updatedProductDto.MinStockLevel
+      };
 
       await _mongoDBService.UpdateProductAsync(id, updatedProduct);
-
-      await _mongoDBService.UpdateVendorAsync(venderList.Id, venderList);
 
       return Ok(new { Message = "Product updated successfully", UpdatedProduct = updatedProduct });
     }
@@ -200,6 +221,25 @@ public class ProductController : ControllerBase
   {
     try
     {
+      var userId = await AuthorizeVenderAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+
+      var product = await _mongoDBService.GetProductAsync(id);
+
+      if (product == null)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+
+      // Ensure that the product belongs to the authorized vendor
+      if (product.VenderId != userId)
+      {
+        return Unauthorized("Unauthorized vendor.");
+      }
+
       var isRemoved = await _mongoDBService.DeleteProductAsync(id);
       if (!isRemoved)
       {
@@ -224,6 +264,22 @@ public class ProductController : ControllerBase
   {
     try
     {
+      var userId = await AuthorizeVenderAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+      var product = await _mongoDBService.GetProductAsync(id);
+      if (product == null)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+
+      // Ensure that the product belongs to the authorized vendor
+      if (product.VenderId != userId)
+      {
+        return Unauthorized("Unauthorized vendor.");
+      }
       var isPatched = await _mongoDBService.ChangeProductStatusAsync(id, newStatus);
       if (!isPatched)
       {
@@ -241,5 +297,109 @@ public class ProductController : ControllerBase
     }
   }
 
+  private async Task<string> AuthorizeVenderAsync()
+  {
+    // Validate token
+    var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""); // Remove "Bearer " prefix
+    if (string.IsNullOrEmpty(token))
+    {
+      return null;
+    }
+
+    // Call JWT Service to validate the token
+    var tokenverify = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+    // Check if the token is valid
+    if (tokenverify == null)
+    {
+      return null;
+    }
+
+    // Check if the user ID is in the token
+    var idClaim = tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+    if (idClaim == null)
+    {
+      return null;
+    }
+
+    // Check if the user is an vender
+    var VenderUser = await _mongoDBService.GetVendorByIdAsync(idClaim.Value);
+    if (VenderUser == null)
+    {
+      return null;
+    }
+
+    return idClaim.Value;
+  }
+
+  private async Task<string> AuthorizeCustomerAsync()
+  {
+    // Validate token
+    var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""); // Remove "Bearer " prefix
+    if (string.IsNullOrEmpty(token))
+    {
+      return null;
+    }
+
+    // Call JWT Service to validate the token
+    var tokenverify = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+    // Check if the token is valid
+    if (tokenverify == null)
+    {
+      return null;
+    }
+
+    // Check if the user ID is in the token
+    var idClaim = tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+    if (idClaim == null)
+    {
+      return null;
+    }
+
+    // Check if the user is an vender
+    var VenderUser = await _mongoDBService.GetCustomerByIdAsync(idClaim.Value);
+    if (VenderUser == null)
+    {
+      return null;
+    }
+
+    return idClaim.Value;
+  }
+
+  private async Task<string> AuthorizeAdminAsync()
+  {
+    // Validate token
+    var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""); // Remove "Bearer " prefix
+    if (string.IsNullOrEmpty(token))
+    {
+      return null;
+    }
+
+    // Call JWT Service to validate the token
+    var tokenverify = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+    // Check if the token is valid
+    if (tokenverify == null)
+    {
+      return null;
+    }
+
+    // Check if the user ID is in the token
+    var idClaim = tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+    if (idClaim == null)
+    {
+      return null;
+    }
+
+    // Check if the user is an vender
+    var VenderUser = await _mongoDBService.GetAdminByIdAsync(idClaim.Value);
+    if (VenderUser == null)
+    {
+      return null;
+    }
+
+    return idClaim.Value;
+  }
 
 }

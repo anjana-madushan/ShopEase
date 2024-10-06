@@ -49,6 +49,24 @@ namespace server.Services
       return await _productCollection.Find(new BsonDocument()).ToListAsync();
     }
 
+    public async Task<List<Product>> GetProductsCustomerAsync()
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.IsActive, true);
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductsVenderAsync(string venderId)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.VenderId, venderId);
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductsCategoryBasedAsync(string category)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Category, category);
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
     public async Task<Product?> GetProductAsync(string id) =>
         await _productCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 

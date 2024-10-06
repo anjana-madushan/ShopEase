@@ -10,6 +10,8 @@ public class Product
   [BsonRepresentation(BsonType.ObjectId)]
   public string? Id { get; set; }
 
+  public required string VenderId { get; set; }
+
   [BsonElement("Name")]
   [Required(ErrorMessage = "Product name is required")]
   public string ProductName { get; set; } = null!;
