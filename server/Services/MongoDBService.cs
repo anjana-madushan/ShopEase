@@ -169,19 +169,14 @@ namespace server.Services
     }
 
     // Update Vendor by ID
-    public async Task UpdateVendorAsync(string vendorId, Dictionary<string, object> updatedVendor)
+    public async Task UpdateVendorAsync(string vendorId, Vendor updatedVendor)
     {
       var filter = Builders<Vendor>.Filter.Eq(a => a.Id, vendorId);
-      var update = Builders<Vendor>.Update
-          .Set("Username", updatedVendor["Username"])
-          .Set("Email", updatedVendor["Email"])
-          .Set("Password", updatedVendor["Password"]);
-
-      var updateResult = await _vendorCollection.UpdateOneAsync(filter, update);
+      var updateResult = await _vendorCollection.ReplaceOneAsync(filter, updatedVendor);
 
       if (updateResult.MatchedCount == 0)
       {
-        throw new Exception($"Vendor with ID {vendorId} not found.");
+        throw new Exception($"Admin with ID {vendorId} not found.");
       }
     }
 
@@ -427,10 +422,10 @@ namespace server.Services
       throw new NotImplementedException();
     }
 
-    private async Task UpdateVendorAsync(string userId, Vendor vendor)
-    {
-      throw new NotImplementedException();
-    }
+    // private async Task UpdateVendorAsync(string userId, Vendor vendor)
+    // {
+    //   throw new NotImplementedException();
+    // }
 
     private async Task UpdateCustomerAsync(string userId, Users customer)
     {

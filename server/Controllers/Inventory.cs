@@ -9,9 +9,9 @@ using server.Utils;
 public class InventoryController : ControllerBase
 {
   private readonly MongoDBService _mongoDBService;
-  private readonly EmailService _emailService;
+  private readonly EmailServiceAlt _emailService;
 
-  public InventoryController(MongoDBService mongoDBService, EmailService emailService)
+  public InventoryController(MongoDBService mongoDBService, EmailServiceAlt emailService)
   {
     _mongoDBService = mongoDBService;
     _emailService = emailService;

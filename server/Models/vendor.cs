@@ -6,19 +6,19 @@ namespace server.Models;
 
 public class Vendor
 {
-    [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; }
+  [BsonId]
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string Id { get; set; }
 
-    [BsonElement("username")]
-    public string Username { get; set; }
+  [BsonElement("username")]
+  public string Username { get; set; }
 
-    [BsonElement("password")]
-    public string Password { get; set; }
+  [BsonElement("password")]
+  public string Password { get; set; }
 
-    [BsonElement("email")]
-    public string Email { get; set; }
+  [BsonElement("email")]
+  public string Email { get; set; }
 
-    [BsonElement("products")]
-    public List<Product> ProductsCreated { get; set; } = new List<Product>();
+  [BsonElement("products")]
+  public List<Product> ProductsCreated { get; set; } = new List<Product>();
 }

@@ -2,7 +2,7 @@ using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Threading.Tasks;
 
-namespace YourNamespace.Services
+namespace server.Services
 {
   public class EmailService
   {
@@ -13,7 +13,6 @@ namespace YourNamespace.Services
     {
       _client = new SendGridClient(apiKey);
       _from = new EmailAddress(senderEmail, senderName);
-
     }
 
     public async Task SendEmailAsync(string recipientEmail, string subject, string message)

@@ -6,13 +6,14 @@ namespace server.Utils
   public class StockAlertUtil
   {
 
-    private readonly EmailService _emailService;
+    private readonly EmailServiceAlt _emailService;
 
     // Constructor to inject EmailService
-    public StockAlertUtil(EmailService emailService)
+    public StockAlertUtil(EmailServiceAlt emailService)
     {
       _emailService = emailService;
     }
+
     public async Task<string> TriggerLowStockAlert(Product product, int updatedStock)
     {
       Console.WriteLine($"Low stock alert for product {product.ProductName}. Current stock: {updatedStock}");
