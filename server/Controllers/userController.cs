@@ -45,225 +45,45 @@ namespace MongoExample.Controllers
         // Check if the role is "admin" and retrieve admin details
         if (login.Role.ToLower() == "admin")
         {
-          try
-          {
-            if (!ModelState.IsValid)
-            {
-              return BadRequest(ModelState);
-            }
-
-            // Declare the variable for existing user
-            dynamic existingUser = null;
-
-            // Check if the role is "admin" and retrieve admin details
-            if (login.Role.ToLower() == "admin")
-            {
-              existingUser = await _mongoDBService.GetAdminByEmailAsync(login.Email);
-            }
-            else if (login.Role.ToLower() == "csr")
-            {
-              existingUser = await _mongoDBService.GetCSRByEmailAsync(login.Email);
-            }
-            else if (login.Role.ToLower() == "vendor")
-            {
-              existingUser = await _mongoDBService.GetVendorByEmailAsync(login.Email);
-            }
-            else if (login.Role.ToLower() == "customer")
-            {
-              existingUser = await _mongoDBService.GetCustomerByEmailAsync(login.Email);
-            }
-
-            if (existingUser == null)
-            {
-              return NotFound("A user with the provided email does not exist.");
-            }
-
-            // Validate the entered password with the stored hashed password
-            bool isPasswordValid = _passwordService.VerifyPassword(login.Password, existingUser.Password);
-            if (!isPasswordValid)
-            {
-              return Unauthorized("The provided password is incorrect.");
-            }
-
-            var userResponse = new
-            {
-              Id = existingUser.Id,
-              Username = existingUser.Username,
-              Email = existingUser.Email,
-              Role = login.Role.ToLower()
-            };
-
-            // Generate a JWT token and expire in 24 hours
-            var token = JWTService.GenerateToken(existingUser, _jwtSettings.SecurityKey, 1440);
-
-            return Ok(new { user = userResponse, token = token });
-          }
-          catch (Exception ex)
-          {
-            return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-          }
+          existingUser = await _mongoDBService.GetAdminByEmailAsync(login.Email);
+        }
+        else if (login.Role.ToLower() == "csr")
+        {
+          existingUser = await _mongoDBService.GetCSRByEmailAsync(login.Email);
+        }
+        else if (login.Role.ToLower() == "vendor")
+        {
+          existingUser = await _mongoDBService.GetVendorByEmailAsync(login.Email);
+        }
+        else if (login.Role.ToLower() == "customer")
+        {
+          existingUser = await _mongoDBService.GetCustomerByEmailAsync(login.Email);
         }
 
         if (existingUser == null)
         {
-          try
-          {
-            if (!ModelState.IsValid)
-            {
-              return BadRequest(ModelState);
-            }
-
-            // Check if the user already exists
-            Users existingUser = await _mongoDBService.GetCustomerByEmailAsync(signup.Email);
-            if (existingUser != null)
-            {
-              return Conflict("A user with the provided email already exists.");
-            }
-
-            // Hash the password
-            string hashedPassword = _passwordService.HashPassword(signup.Password);
-
-            // Create a new user
-            Users newUser = new Users
-            {
-              Username = signup.UserName,
-              Email = signup.Email,
-              Password = hashedPassword,
-              ApprovalStatus = false
-            };
-
-            // Save the user to the database
-            await _mongoDBService.CreateCustomerAsync(newUser);
-
-            //Response
-            var userResponse = new
-            {
-              Id = newUser.Id,
-              Username = newUser.Username,
-              Email = newUser.Email,
-              Role = "customer"
-            };
-
-            return Ok(userResponse);
-          }
-          catch (Exception ex)
-          {
-            return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-          }
+          return NotFound("A user with the provided email does not exist.");
         }
 
-        // Update user details
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateDTO updatedUser)
+        // Validate the entered password with the stored hashed password
+        bool isPasswordValid = _passwordService.VerifyPassword(login.Password, existingUser.Password);
+        if (!isPasswordValid)
         {
-          try
-          {
-            if (!ModelState.IsValid)
-            {
-              return BadRequest(ModelState);
-            }
-
-            //Validate token
-            var token = Request.Headers["Authorization"];
-            if (token.Count == 0)
-            {
-              return Unauthorized("Token is required.");
-            }
-
-            var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-            if (user == null)
-            {
-              return Unauthorized("Invalid token.");
-            }
-
-            //Check if role is provided
-            if (string.IsNullOrEmpty(updatedUser.Role))
-            {
-              return BadRequest("Role is required.");
-            }
-
-            // Declare the variable for existing user
-            dynamic existingUser = null;
-
-            // Centralized user retrieval based on role
-            switch (updatedUser.Role.ToLower())
-            {
-              case "admin":
-                existingUser = await _mongoDBService.GetAdminByIdAsync(id);
-                break;
-              case "csr":
-                existingUser = await _mongoDBService.GetCSRByIdAsync(id);
-                break;
-              case "vendor":
-                existingUser = await _mongoDBService.GetVendorByIdAsync(id);
-                break;
-              case "customer":
-                existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
-                break;
-              default:
-                return BadRequest("Invalid role provided.");
-            }
-
-
-            if (existingUser == null)
-            {
-              return NotFound("A user with the provided id does not exist.");
-            }
-
-            // Hash the password
-            string hashedPassword = "";
-
-            if (!string.IsNullOrEmpty(updatedUser.Password))
-            {
-              hashedPassword = _passwordService.HashPassword(updatedUser.Password);
-            }
-
-            // Check if the user is updating the username, email, or password
-            if (updatedUser.Username == null && updatedUser.Email == null && updatedUser.Password == null)
-            {
-              return BadRequest("Please provide the details you would like to update.");
-            }
-
-            // Update the user details
-            if (!string.IsNullOrEmpty(updatedUser.Username))
-            {
-              existingUser.Username = updatedUser.Username;
-            }
-            if (!string.IsNullOrEmpty(updatedUser.Email))
-            {
-              existingUser.Email = updatedUser.Email;
-            }
-            if (!string.IsNullOrEmpty(updatedUser.Password))
-            {
-              existingUser.Password = hashedPassword;
-            }
-
-            // Save the updated user details to the database
-            await _mongoDBService.UpdateUserAsync(id, updatedUser.Role, existingUser);
-
-            //Response
-            var userResponse = new
-            {
-              Id = existingUser.Id,
-              Username = existingUser.Username,
-              Email = existingUser.Email,
-              Role = updatedUser.Role.ToLower()
-            };
-
-            return Ok(userResponse);
-          }
-          catch (Exception ex)
-          {
-            return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-          }
+          return Unauthorized("The provided password is incorrect.");
         }
 
+        var userResponse = new
+        {
+          Id = existingUser.Id,
+          Username = existingUser.Username,
+          Email = existingUser.Email,
+          Role = login.Role.ToLower()
+        };
 
         // Generate a JWT token and expire in 24 hours
         var token = JWTService.GenerateToken(existingUser, _jwtSettings.SecurityKey, 1440);
 
-        return Ok(new { admin = existingUser, token = token });
+        return Ok(new { user = userResponse, token = token });
       }
       catch (Exception ex)
       {
@@ -279,56 +99,7 @@ namespace MongoExample.Controllers
       {
         if (!ModelState.IsValid)
         {
-          try
-          {
-
-            //Validate token
-            var token = Request.Headers["Authorization"];
-            if (token.Count == 0)
-            {
-              return Unauthorized("Token is required.");
-            }
-
-            var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-            if (user == null)
-            {
-              return Unauthorized("Invalid token.");
-            }
-            // Declare the variable for existing user
-            dynamic existingUsers = null;
-
-            // Centralized user retrieval based on role
-            switch (role.ToLower())
-            {
-              case "admin":
-                existingUsers = await _mongoDBService.GetAllAdminsAsync();
-                break;
-              case "csr":
-                existingUsers = await _mongoDBService.GetAllCSRsAsync();
-                break;
-              case "vendor":
-                existingUsers = await _mongoDBService.GetVendorsAsync();
-                break;
-              case "customer":
-                existingUsers = await _mongoDBService.GetAllCustomersAsync();
-                break;
-              default:
-                return BadRequest("Invalid role provided.");
-            }
-
-            if (existingUsers == null)
-            {
-              return NotFound("No users found.");
-            }
-
-
-            return Ok(existingUsers);
-          }
-          catch (Exception ex)
-          {
-            return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-          }
+          return BadRequest(ModelState);
         }
 
         // Check if the user already exists
@@ -353,7 +124,16 @@ namespace MongoExample.Controllers
         // Save the user to the database
         await _mongoDBService.CreateCustomerAsync(newUser);
 
-        return Ok(newUser);
+        //Response
+        var userResponse = new
+        {
+          Id = newUser.Id,
+          Username = newUser.Username,
+          Email = newUser.Email,
+          Role = "customer"
+        };
+
+        return Ok(userResponse);
       }
       catch (Exception ex)
       {
@@ -417,7 +197,7 @@ namespace MongoExample.Controllers
 
         if (existingUser == null)
         {
-          return NotFound("A user with the provided email does not exist.");
+          return NotFound("A user with the provided id does not exist.");
         }
 
         // Hash the password
@@ -451,7 +231,16 @@ namespace MongoExample.Controllers
         // Save the updated user details to the database
         await _mongoDBService.UpdateUserAsync(id, updatedUser.Role, existingUser);
 
-        return Ok(existingUser);
+        //Response
+        var userResponse = new
+        {
+          Id = existingUser.Id,
+          Username = existingUser.Username,
+          Email = existingUser.Email,
+          Role = updatedUser.Role.ToLower()
+        };
+
+        return Ok(userResponse);
       }
       catch (Exception ex)
       {
@@ -500,6 +289,12 @@ namespace MongoExample.Controllers
           default:
             return BadRequest("Invalid role provided.");
         }
+
+        if (existingUsers == null)
+        {
+          return NotFound("No users found.");
+        }
+
 
         return Ok(existingUsers);
       }
@@ -1167,4 +962,3 @@ namespace MongoExample.Controllers
 
   }
 }
-
