@@ -5,6 +5,12 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.sliit.shopease.interfaces.NetworkCallback;
+import com.sliit.shopease.models.ShopEaseError;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -15,24 +21,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import com.sliit.shopease.interfaces.NetworkCallback;
-
 public class NetworkHelper {
   private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
   private static NetworkHelper instance;
   private final OkHttpClient client;
-
-  // Singleton pattern to ensure one instance of the NetworkHelper
-  public static NetworkHelper getInstance() {
-    if (instance == null) {
-      instance = new NetworkHelper();
-    }
-    return instance;
-  }
 
   private NetworkHelper() {
     client = new OkHttpClient.Builder()
@@ -40,6 +33,14 @@ public class NetworkHelper {
         .writeTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build();
+  }
+
+  // Singleton pattern to ensure one instance of the NetworkHelper
+  public static NetworkHelper getInstance() {
+    if (instance == null) {
+      instance = new NetworkHelper();
+    }
+    return instance;
   }
 
   // Perform GET Request
@@ -54,19 +55,19 @@ public class NetworkHelper {
     client.newCall(request).enqueue(new Callback() {
       @Override
       public void onFailure(@NonNull Call call, @NonNull IOException e) {
-        callback.onFailure(e.getMessage());
+        callback.onFailure(new ShopEaseError(e));
       }
 
       @Override
       public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
         if (!response.isSuccessful()) {
-          callback.onFailure("Unexpected code " + response);
+          callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
         } else {
           ResponseBody responseData = response.body();
-          if(responseData != null) {
+          if (responseData != null) {
             callback.onSuccess(responseData.string());
-          }else{
-            callback.onFailure("Response body is null");
+          } else {
+            callback.onFailure(new ShopEaseError());
           }
         }
       }
@@ -88,19 +89,19 @@ public class NetworkHelper {
     client.newCall(request).enqueue(new Callback() {
       @Override
       public void onFailure(@NonNull Call call, @NonNull IOException e) {
-        callback.onFailure(e.getMessage());
+        callback.onFailure(new ShopEaseError(e));
       }
 
       @Override
       public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
         if (!response.isSuccessful()) {
-          callback.onFailure("Unexpected code " + response);
+          callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
         } else {
           ResponseBody responseData = response.body();
-          if(responseData != null) {
+          if (responseData != null) {
             callback.onSuccess(responseData.string());
-          }else{
-            callback.onFailure("Response body is null");
+          } else {
+            callback.onFailure(new ShopEaseError());
           }
         }
       }
@@ -121,19 +122,19 @@ public class NetworkHelper {
     client.newCall(request).enqueue(new Callback() {
       @Override
       public void onFailure(@NonNull Call call, @NonNull IOException e) {
-        callback.onFailure(e.getMessage());
+        callback.onFailure(new ShopEaseError(e));
       }
 
       @Override
       public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
         if (!response.isSuccessful()) {
-          callback.onFailure("Unexpected code " + response);
+          callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
         } else {
           ResponseBody responseData = response.body();
-          if(responseData != null) {
+          if (responseData != null) {
             callback.onSuccess(responseData.string());
-          }else{
-            callback.onFailure("Response body is null");
+          } else {
+            callback.onFailure(new ShopEaseError());
           }
         }
       }
@@ -153,19 +154,19 @@ public class NetworkHelper {
     client.newCall(request).enqueue(new Callback() {
       @Override
       public void onFailure(@NonNull Call call, @NonNull IOException e) {
-        callback.onFailure(e.getMessage());
+        callback.onFailure(new ShopEaseError(e));
       }
 
       @Override
       public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
         if (!response.isSuccessful()) {
-          callback.onFailure("Unexpected code " + response);
+          callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
         } else {
           ResponseBody responseData = response.body();
-          if(responseData != null) {
+          if (responseData != null) {
             callback.onSuccess(responseData.string());
-          }else{
-            callback.onFailure("Response body is null");
+          } else {
+            callback.onFailure(new ShopEaseError());
           }
         }
       }

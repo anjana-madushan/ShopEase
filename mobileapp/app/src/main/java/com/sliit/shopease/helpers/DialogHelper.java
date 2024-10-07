@@ -1,11 +1,13 @@
 package com.sliit.shopease.helpers;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sliit.shopease.R;
@@ -41,7 +43,7 @@ public class DialogHelper {
   public static void showEdtTextDialog(Context context, String title, String defaultText, final DialogCallback callback) {
     // Inflate the custom dialog layout
     LayoutInflater inflater = LayoutInflater.from(context);
-    View dialogView = inflater.inflate(R.layout.layout_edt_dialog, null);
+    View dialogView = inflater.inflate(R.layout.layout_dialog_input, null);
 
     // Initialize the EditText inside the dialog
     EditText editText = dialogView.findViewById(R.id.editTextInput);
@@ -71,6 +73,32 @@ public class DialogHelper {
 
     // Show the dialog
     builder.create().show();
+  }
+
+  // Method to show a loading dialog
+  private static Dialog loadingDialog;
+  public static void showLoading(Context context, String message) {
+    // Create a new loading dialog if it doesn't already exist
+    if (loadingDialog == null) {
+      loadingDialog = new Dialog(context);
+      loadingDialog.setCancelable(false); // Disable dismiss on touch outside
+
+      // Inflate the custom loading layout
+      View loadingView = LayoutInflater.from(context).inflate(R.layout.layout_dialog_loading, null);
+      loadingDialog.setContentView(loadingView);
+
+      // Set loading message
+      TextView loadingMessage = loadingView.findViewById(R.id.loading_message);
+      loadingMessage.setText(message);
+    }
+    loadingDialog.show(); // Show the loading dialog
+  }
+
+  // Method to hide the loading overlay
+  public static void hideLoading() {
+    if (loadingDialog != null && loadingDialog.isShowing()) {
+      loadingDialog.dismiss();
+    }
   }
 
   // Interface for callback to handle input

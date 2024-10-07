@@ -1,8 +1,13 @@
 package com.sliit.shopease.activity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +21,7 @@ import com.sliit.shopease.helpers.DialogHelper;
 import com.sliit.shopease.helpers.NetworkHelper;
 import com.sliit.shopease.helpers.SharedPreferencesHelper;
 import com.sliit.shopease.interfaces.NetworkCallback;
+import com.sliit.shopease.models.ShopEaseError;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +31,7 @@ public class SignInActivity extends AppCompatActivity {
   private EditText edt_pass;
   private SharedPreferencesHelper sharedPreferencesHelper;
   private NetworkHelper networkHelper;
+  private TextView txt_register;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,7 @@ public class SignInActivity extends AppCompatActivity {
 
     edt_email = findViewById(R.id.signIn_edt_email);
     edt_pass = findViewById(R.id.signIn_edt_password);
+    txt_register = findViewById(R.id.txt_register);
 
     Button btn_signIn = findViewById(R.id.signIn_btn_signIn);
     FloatingActionButton fab = findViewById(R.id.fab);
@@ -57,7 +65,8 @@ public class SignInActivity extends AppCompatActivity {
     networkHelper = NetworkHelper.getInstance();
 
     fab.setOnClickListener(view -> showBaseUrlDialog());
-    btn_signIn.setOnClickListener(view -> signIn());
+    btn_signIn.setOnClickListener(this::signIn);
+    txt_register.setOnClickListener(view -> goRegister());
   }
 
   void showBaseUrlDialog() {
@@ -75,7 +84,17 @@ public class SignInActivity extends AppCompatActivity {
     });
   }
 
-  void signIn() {
+  void signIn(View v) {
+    edt_email.clearFocus();
+    edt_pass.clearFocus();
+
+    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+    if (imm != null) {
+      imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
+    DialogHelper.showLoading(this, "Signing in...");
+
     String email = edt_email.getText().toString();
     String password = edt_pass.getText().toString();
 
@@ -94,13 +113,24 @@ public class SignInActivity extends AppCompatActivity {
       @Override
       public void onSuccess(String response) {
         System.out.println(response);
+        DialogHelper.hideLoading();
+        DialogHelper.showAlert(SignInActivity.this, "Success", "Login successful");
       }
 
       @Override
-      public void onFailure(String error) {
-        System.out.println(error);
+      public void onFailure(ShopEaseError error) {
+        runOnUiThread(() -> {
+          System.out.println(error);
+          DialogHelper.hideLoading();
+          DialogHelper.showAlert(SignInActivity.this, "Error: ", error.getMessage());
+        });
       }
     });
+  }
+
+  void goRegister(){
+    Intent intent = new Intent(this, RegisterActivity.class);
+    startActivity(intent);
   }
 }
 
