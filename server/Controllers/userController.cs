@@ -39,6 +39,21 @@ namespace MongoExample.Controllers
                     return BadRequest(ModelState);
                 }
 
+                if (string.IsNullOrEmpty(login.Email))
+                {
+                    return BadRequest("Email cannot be null or empty.");
+                }
+
+                if (string.IsNullOrEmpty(login.Password))
+                {
+                    return BadRequest("Password cannot be null or empty.");
+                }
+
+                if (string.IsNullOrEmpty(login.Role))
+                {
+                    return BadRequest("Role cannot be null or empty.");
+                }
+
                 // Declare the variable for existing user
                 dynamic existingUser = null;
 
@@ -59,14 +74,19 @@ namespace MongoExample.Controllers
                 {
                     existingUser = await _mongoDBService.GetCustomerByEmailAsync(login.Email);
                 }
+                else
+                {
+                    return BadRequest("Invalid role provided.");
+                }
 
                 if (existingUser == null)
                 {
                     return NotFound("A user with the provided email does not exist.");
                 }
 
-                // Validate the entered password with the stored hashed password
+                 // Validate the entered password with the stored hashed password
                 bool isPasswordValid = _passwordService.VerifyPassword(login.Password, existingUser.Password);
+                
                 if (!isPasswordValid)
                 {
                     return Unauthorized("The provided password is incorrect.");
@@ -80,7 +100,7 @@ namespace MongoExample.Controllers
                     Role = login.Role.ToLower()
                 };
 
-                // Generate a JWT token and expire in 24 hours
+                 // Generate a JWT token and expire in 24 hours
                 var token = JWTService.GenerateToken(existingUser, _jwtSettings.SecurityKey, 1440);
 
                 return Ok(new { user = userResponse, token = token });
@@ -90,6 +110,7 @@ namespace MongoExample.Controllers
                 return StatusCode(500, $"An internal server error occurred: {ex.Message}");
             }
         }
+
 
         //Signup for new customer
         [HttpPost("signup")]
