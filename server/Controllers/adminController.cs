@@ -5,7 +5,7 @@ using server.Models;
 using server.DTOs;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
-using YourNamespace.Services;
+
 
 namespace MongoExample.Controllers;
 
@@ -32,57 +32,71 @@ public class AdminController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] AdminDTO admin)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return BadRequest(ModelState);
-        }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        //Check if the provided email is valid
-        if (!admin.Email.Contains("@"))
-        {
-            return BadRequest("The provided email is not valid.");
-        }
-        //Check if the provided password is valid
-        if (admin.Password.Length < 8 || admin.Password.Length > 20 ||
-      !admin.Password.Any(char.IsDigit) ||
-      !admin.Password.Any(char.IsUpper) ||
-      !admin.Password.Any(char.IsLower) ||
-      !admin.Password.Any(c => !char.IsLetterOrDigit(c)))
-        {
-            return BadRequest("The provided password is not valid (must be between 8 and 20 characters and contain at least one uppercase letter, one lowercase letter, one digit, and one special character).");
-        }
-        // Check if an admin with the provided email already exists
-        var existingAdmin = await _mongoDBService.GetAdminByEmailAsync(admin.Email);
-        if (existingAdmin != null)
-        {
-            return Conflict("An admin with the provided email already exists.");
-        }
+            //Check if the provided email is valid
+            if (!admin.Email.Contains("@"))
+            {
+                return BadRequest("The provided email is not valid.");
+            }
+            //Check if the provided password is valid
+            if (admin.Password.Length < 8 || admin.Password.Length > 20 ||
+          !admin.Password.Any(char.IsDigit) ||
+          !admin.Password.Any(char.IsUpper) ||
+          !admin.Password.Any(char.IsLower) ||
+          !admin.Password.Any(c => !char.IsLetterOrDigit(c)))
+            {
+                return BadRequest("The provided password is not valid (must be between 8 and 20 characters and contain at least one uppercase letter, one lowercase letter, one digit, and one special character).");
+            }
+            // Check if an admin with the provided email already exists
+            var existingAdmin = await _mongoDBService.GetAdminByEmailAsync(admin.Email);
+            if (existingAdmin != null)
+            {
+                return Conflict("An admin with the provided email already exists.");
+            }
 
-        // Hash the password
-        string hashedPassword = _passwordService.HashPassword(admin.Password);
-        var newAdmin = new Admin
-        {
-            Username = admin.Username,
-            Password = hashedPassword,
-            Email = admin.Email
-        };
+            // Hash the password
+            string hashedPassword = _passwordService.HashPassword(admin.Password);
+            var newAdmin = new Admin
+            {
+                Username = admin.Username,
+                Password = hashedPassword,
+                Email = admin.Email
+            };
 
-        await _mongoDBService.CreateAdminAsync(newAdmin);
-        return CreatedAtAction(nameof(Get), new { id = newAdmin.Id }, newAdmin);
+            await _mongoDBService.CreateAdminAsync(newAdmin);
+            return CreatedAtAction(nameof(Get), new { id = newAdmin.Id }, newAdmin);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+        }
     }
 
     //Get Admin by ID
     [HttpGet("{id}")]
     public async Task<ActionResult<Admin>> Get(string id)
     {
-        var admin = await _mongoDBService.GetAdminByIdAsync(id);
-
-        if (admin is null)
+        try
         {
-            return NotFound();
-        }
+            var admin = await _mongoDBService.GetAdminByIdAsync(id);
 
-        return admin;
+            if (admin is null)
+            {
+                return NotFound();
+            }
+
+            return admin;
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+        }
     }
 
     //Admin creating another Admin
@@ -154,6 +168,24 @@ public class AdminController : ControllerBase
             {
                 return Conflict("An admin with the provided email already exists.");
             }
+            //Check if an CSR with the provided email already exists
+            var existingCSR = await _mongoDBService.GetCSRByEmailAsync(admin.Email);
+            if (existingCSR != null)
+            {
+                return Conflict("A CSR with the provided email already exists.");
+            }
+            //Check if an Vendor with the provided email already exists
+            var existingVendor = await _mongoDBService.GetVendorByEmailAsync(admin.Email);
+            if (existingVendor != null)
+            {
+                return Conflict("A Vendor with the provided email already exists.");
+            }
+            //Check if an Customer with the provided email already exists
+            var existingUser = await _mongoDBService.GetCustomerByEmailAsync(admin.Email);
+            if (existingUser != null)
+            {
+                return Conflict("A User with the provided email already exists.");
+            }
 
             // Hash the password
             string hashedPassword = _passwordService.HashPassword(admin.Password);
@@ -170,6 +202,12 @@ public class AdminController : ControllerBase
             adminList.AdminsCreated.Add(newAdmin);
             await _mongoDBService.UpdateAdminAsync(adminList.Id, adminList);
 
+            //Send email to Admin with the password and email
+            await _emailService.SendEmailAsync(
+      newAdmin.Email,
+      "Welcome to the team",
+      $"Your Email is {admin.Email}\nPassword: {admin.Password}\nPlease change your password after login."
+  );
 
             return CreatedAtAction(nameof(Get), new { id = newAdmin.Id }, newAdmin);
         }
@@ -231,11 +269,32 @@ public class AdminController : ControllerBase
                 return BadRequest("The provided email is not valid.");
             }
 
-            // Check if an admin with the provided email already exists
+            // Check if an csr with the provided email already exists
             var existingCSR = await _mongoDBService.GetCSRByEmailAsync(csr.Email);
             if (existingCSR != null)
             {
                 return Conflict("A CSR with the provided email already exists.");
+            }
+
+            //Check if an Vendor with the provided email already exists
+            var existingVendor = await _mongoDBService.GetVendorByEmailAsync(csr.Email);
+            if (existingVendor != null)
+            {
+                return Conflict("A Vendor with the provided email already exists.");
+            }
+
+            //Check if an Customer with the provided email already exists
+            var existingUser = await _mongoDBService.GetCustomerByEmailAsync(csr.Email);
+            if (existingUser != null)
+            {
+                return Conflict("A User with the provided email already exists.");
+            }
+
+            //Check if an Admin with the provided email already exists
+            var existingAdmin = await _mongoDBService.GetAdminByEmailAsync(csr.Email);
+            if (existingAdmin != null)
+            {
+                return Conflict("An Admin with the provided email already exists.");
             }
 
             // Hash the password

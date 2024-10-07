@@ -5,7 +5,6 @@ using server.Models;
 using server.DTOs;
 using Microsoft.Extensions.Options;
 using api.Dtos.Account;
-using YourNamespace.Services;
 
 namespace MongoExample.Controllers
 {
@@ -127,7 +126,7 @@ namespace MongoExample.Controllers
         }
 
         // Update user details
-        [HttpPut("{id}")]
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateDTO updatedUser)
         {
             try

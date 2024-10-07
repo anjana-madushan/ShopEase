@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using api.Dtos.Account;
+using server.Models;
 
 namespace server.DTOs
 {
@@ -10,7 +11,7 @@ namespace server.DTOs
         public string Password { get; set; }
         public List<AdminDTO>? AdminsCreated { get; set; } = new List<AdminDTO>();
         public List<CSRDTO>? CSRCreated { get; set; } = new List<CSRDTO>();
-        public List<VendorDTO>? VendorCreated { get; set; } = new List<VendorDTO>();
+        public List<Vendor> VendorCreated { get; set; } = new List<Vendor>();  
     }
 
 }

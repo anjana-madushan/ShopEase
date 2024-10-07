@@ -8,6 +8,7 @@ namespace server.Services
   public class MongoDBService
   {
     private readonly IMongoCollection<Product> _productCollection;
+    private readonly IMongoCollection<Comments> _commentCollection;
     private readonly IMongoCollection<Admin> _adminCollection;
     private readonly IMongoCollection<Order> _orderCollection;
 
@@ -29,6 +30,7 @@ namespace server.Services
 
         // Initialize the collections
         _productCollection = database.GetCollection<Product>(mongoDBConfigs.Value.MongoProductCollection);
+        _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoCommentCollection);
         _adminCollection = database.GetCollection<Admin>(mongoDBConfigs.Value.MongoAdminCollection);
         _orderCollection = database.GetCollection<Order>(mongoDBConfigs.Value.MongoOrderCollection);
         _notificationCollection = database.GetCollection<Notification>(mongoDBConfigs.Value.MongoNotificationCollection);
@@ -52,6 +54,36 @@ namespace server.Services
       return await _productCollection.Find(new BsonDocument()).ToListAsync();
     }
 
+    public async Task<List<Product>> GetProductsCustomerAsync()
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.IsActive, true);
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductsVenderAsync(string venderId)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.VenderId, venderId);
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Product>> SearchProduct(string productName)
+    {
+      var filterBuilder = Builders<Product>.Filter;
+      var nameFilter = filterBuilder.Regex("ProductName", new BsonRegularExpression($"^{productName}", "i"));
+      var activeFilter = filterBuilder.Eq("IsActive", true);
+      var combinedFilter = filterBuilder.And(nameFilter, activeFilter);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductsCategoryBasedAsync(string category)
+    {
+      var filterBuilder = Builders<Product>.Filter;
+      var categoryFilter = Builders<Product>.Filter.Eq(p => p.Category, category);
+      var activeFilter = filterBuilder.Eq("IsActive", true);
+      var combinedFilter = filterBuilder.And(categoryFilter, activeFilter);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
+    }
+
     public async Task<Product?> GetProductAsync(string id) =>
         await _productCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
@@ -63,10 +95,66 @@ namespace server.Services
     public async Task UpdateProductAsync(string id, Product updatedProduct) =>
         await _productCollection.ReplaceOneAsync(x => x.Id == id, updatedProduct);
 
-    public async Task DeleteProductAsync(string id)
+    public async Task<bool> DeleteProductAsync(string id)
     {
       FilterDefinition<Product> filter = Builders<Product>.Filter.Eq("Id", id);
-      await _productCollection.DeleteOneAsync(filter);
+      var result = await _productCollection.DeleteOneAsync(filter);
+      return result.DeletedCount > 0;
+    }
+
+    public async Task<bool> ChangeProductStatusAsync(string id, bool isActive)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Id, id);
+      var update = Builders<Product>.Update.Set(p => p.IsActive, isActive);
+
+      var result = await _productCollection.UpdateOneAsync(filter, update);
+      return result.ModifiedCount > 0;
+    }
+
+    //Inventory methods
+    public async Task<bool> DeductAvailableStock(string id, int quantity)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Id, id);
+      var updatedAvailableStock = quantity;
+      var update = Builders<Product>.Update.Set(p => p.StockLevel, updatedAvailableStock);
+
+      var result = await _productCollection.UpdateOneAsync(filter, update);
+      return result.ModifiedCount > 0;
+    }
+
+    //Comment Methods
+    public async Task CreateCommentAndRate(Comments comment)
+    {
+      await _commentCollection.InsertOneAsync(comment);
+    }
+
+    public async Task<List<Comments>> GetCommentsAsync()
+    {
+      return await _commentCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    public async Task<Comments?> GetCommentAsync(string id) =>
+        await _commentCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    public async Task<List<Comments>> GetCustomerSpecificCommentsAsync(string customerId)
+    {
+      return await _commentCollection.Find(x => x.CustomerId == customerId).ToListAsync();
+    }
+
+    public async Task<List<Comments>> GetVenderSpecificCommentsAsync(string venderId)
+    {
+      return await _commentCollection.Find(x => x.VendorId == venderId).ToListAsync();
+    }
+
+    public async Task UpdateCommentAsync(string id, Comments updatedComment) =>
+        await _commentCollection.ReplaceOneAsync(x => x.Id == id, updatedComment);
+
+
+    public async Task<bool> DeleteCommentAsync(string id)
+    {
+      FilterDefinition<Comments> filter = Builders<Comments>.Filter.Eq("Id", id);
+      var result = await _commentCollection.DeleteOneAsync(filter);
+      return result.DeletedCount > 0;
     }
 
     //User Management Methods
@@ -116,19 +204,14 @@ namespace server.Services
     }
 
     // Update Vendor by ID
-    public async Task UpdateVendorAsync(string vendorId, Dictionary<string, object> updatedVendor)
+    public async Task UpdateVendorAsync(string vendorId, Vendor updatedVendor)
     {
       var filter = Builders<Vendor>.Filter.Eq(a => a.Id, vendorId);
-      var update = Builders<Vendor>.Update
-          .Set("Username", updatedVendor["Username"])
-          .Set("Email", updatedVendor["Email"])
-          .Set("Password", updatedVendor["Password"]);
-
-      var updateResult = await _vendorCollection.UpdateOneAsync(filter, update);
+      var updateResult = await _vendorCollection.ReplaceOneAsync(filter, updatedVendor);
 
       if (updateResult.MatchedCount == 0)
       {
-        throw new Exception($"Vendor with ID {vendorId} not found.");
+        throw new Exception($"Admin with ID {vendorId} not found.");
       }
     }
 
@@ -374,10 +457,10 @@ namespace server.Services
       throw new NotImplementedException();
     }
 
-    private async Task UpdateVendorAsync(string userId, Vendor vendor)
-    {
-      throw new NotImplementedException();
-    }
+    // private async Task UpdateVendorAsync(string userId, Vendor vendor)
+    // {
+    //   throw new NotImplementedException();
+    // }
 
     private async Task UpdateCustomerAsync(string userId, Users customer)
     {
