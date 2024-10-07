@@ -187,15 +187,10 @@ namespace server.Services
     }
 
     // Update CSR by ID
-    public async Task UpdateCSRAsync(string csrId, Dictionary<string, object> updatedCSR)
+    public async Task UpdateCSRByIDAsync(string csrId, CSR updatedCSR)
     {
       var filter = Builders<CSR>.Filter.Eq(a => a.Id, csrId);
-      var update = Builders<CSR>.Update
-          .Set("Username", updatedCSR["Username"])
-          .Set("Email", updatedCSR["Email"])
-          .Set("Password", updatedCSR["Password"]);
-
-      var updateResult = await _csrCollection.UpdateOneAsync(filter, update);
+      var updateResult = await _csrCollection.ReplaceOneAsync(filter, updatedCSR);
 
       if (updateResult.MatchedCount == 0)
       {
@@ -289,7 +284,7 @@ namespace server.Services
           {
             throw new Exception($"CSR with ID {userId} not found.");
           }
-          await UpdateCSRAsync(userId, updatedUser);
+          await UpdateCSRByIDAsync(userId, updatedUser);
           break;
 
         case "vendor":
@@ -424,7 +419,7 @@ namespace server.Services
             throw new Exception($"CSR with ID {userId} not found.");
           }
           csr.Password = newPassword;
-          await UpdateCSRAsync(userId, csr);
+          await UpdateCSRByIDAsync(userId, csr);
           break;
 
         case "vendor":

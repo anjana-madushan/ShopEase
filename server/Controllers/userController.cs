@@ -126,7 +126,7 @@ namespace MongoExample.Controllers
         }
 
         // Update user details
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateDTO updatedUser)
         {
             try
@@ -181,7 +181,7 @@ namespace MongoExample.Controllers
 
                 if (existingUser == null)
                 {
-                    return NotFound("A user with the provided email does not exist.");
+                    return NotFound("A user with the provided id does not exist.");
                 }
 
                 // Hash the password
