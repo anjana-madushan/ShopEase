@@ -6,6 +6,7 @@ public class MongoDBConfig
   public string MongoURI { get; set; } = null!;
   public string DbName { get; set; } = null!;
   public string MongoProductCollection { get; set; } = null!;
+  public string MongoCommentCollection { get; set; } = null!;
   public string MongoAdminCollection { get; set; } = null!;
   public string MongoOrderCollection { get; set; } = null!;
   public string MongoNotificationCollection { get; set; } = null!;
