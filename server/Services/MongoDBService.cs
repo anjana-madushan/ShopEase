@@ -10,6 +10,10 @@ namespace server.Services
     private readonly IMongoCollection<Product> _productCollection;
     private readonly IMongoCollection<Comments> _commentCollection;
     private readonly IMongoCollection<Admin> _adminCollection;
+    private readonly IMongoCollection<Order> _orderCollection;
+
+    private readonly IMongoCollection<Notification> _notificationCollection;
+
     private readonly IMongoCollection<CSR> _csrCollection;
 
     private readonly IMongoCollection<Users> _customerCollection;
@@ -29,6 +33,8 @@ namespace server.Services
         _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoCommentCollection);
         // _petCollection = database.GetCollection<Pet>(mongoDBConfigs.Value.MongoPetCollection);
         _adminCollection = database.GetCollection<Admin>(mongoDBConfigs.Value.MongoAdminCollection);
+        _orderCollection = database.GetCollection<Order>(mongoDBConfigs.Value.MongoOrderCollection);
+        _notificationCollection = database.GetCollection<Notification>(mongoDBConfigs.Value.MongoNotificationCollection);
         _csrCollection = database.GetCollection<CSR>(mongoDBConfigs.Value.MongoCSRCollection);
         _vendorCollection = database.GetCollection<Vendor>(mongoDBConfigs.Value.MongoVendorCollection);
         _customerCollection = database.GetCollection<Users>(mongoDBConfigs.Value.MongoCustomerCollection);
@@ -460,6 +466,82 @@ namespace server.Services
     private async Task UpdateCustomerAsync(string userId, Users customer)
     {
       throw new NotImplementedException();
+    }
+
+    //Add a new order
+    public async Task<Order> CreateOrder(Order order)
+    {
+      await _orderCollection.InsertOneAsync(order);
+      return order;
+    }
+
+    //Get order by ID
+    public async Task<Order?> GetOrderByIdAsync(string id) =>
+        await _orderCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+
+    //Get order by OrderId
+    public async Task<Order?> GetOrderByOrderIdAsync(string orderId) =>
+        await _orderCollection.Find(x => x.OrderId == orderId).FirstOrDefaultAsync();
+
+    //Update Order
+    public async Task UpdateOrder(Order order)
+    {
+      var filter = Builders<Order>.Filter.Eq(a => a.Id, order.Id);
+      var updateResult = await _orderCollection.ReplaceOneAsync(filter, order);
+
+      if (updateResult.MatchedCount == 0)
+      {
+        throw new Exception($"Order with ID {order.Id} not found.");
+      }
+    }
+
+    //Get All Requests to cancel orders
+    public async Task<List<Order>> GetRequestToCancelOrdersAsync()
+    {
+      return await _orderCollection.Find(x => x.RequestToCancel == true).ToListAsync();
+    }
+
+    //Get All Cancelled Orders where Request to cancel is false and Cancelled is true
+    public async Task<List<Order>> GetCancelledOrdersAsync()
+    {
+      return await _orderCollection.Find(x => x.RequestToCancel == false && x.Cancelled == true).ToListAsync();
+    }
+
+    //Get all orders
+    public async Task<List<Order>> GetAllOrdersAsync()
+    {
+      return await _orderCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    //Get order by userId
+    public async Task<List<Order>> GetOrdersByUserIdAsync(string userId)
+    {
+      return await _orderCollection.Find(x => x.UserId == userId).ToListAsync();
+    }
+
+    //Get orders cancelled by csr by CSR ID
+    public async Task<List<Order>> GetOrdersCancelledByCSRAsync(string csrId)
+    {
+      return await _orderCollection.Find(x => x.CancelledBy == csrId).ToListAsync();
+    }
+
+    //Add Notification
+    public async Task<Notification> CreateNotification(Notification notification)
+    {
+      await _notificationCollection.InsertOneAsync(notification);
+      return notification;
+    }
+
+    //Get Notification by ID
+    public async Task<Notification?> GetNotificationByIdAsync(string id) =>
+        await _notificationCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    //Delete Notification
+    public async Task DeleteNotificationAsync(string notificationId)
+    {
+      FilterDefinition<Notification> filter = Builders<Notification>.Filter.Eq("Id", notificationId);
+      await _notificationCollection.DeleteOneAsync(filter);
     }
   }
 }
