@@ -320,7 +320,7 @@ public class ProductController : ControllerBase
   {
     try
     {
-      var userId = await AuthorizeVenderAsync();
+      var userId = await AuthorizeAdminAsync();
       if (userId == null)
       {
         return Unauthorized("Unauthorized user.");

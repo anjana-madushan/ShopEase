@@ -44,6 +44,72 @@ public class InventoryController : ControllerBase
     }
   }
 
+  [HttpGet("lowstockproducts-all")]
+  public async Task<IActionResult> GetLowStockAllProducts()
+  {
+    try
+    {
+      var userId = await AuthorizeAdminAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+      var products = await _mongoDBService.GetProductsAsync();
+      var lowStockProducts = products.Where(p => p.StockLevel <= p.MinStockLevel).ToList();
+      if (lowStockProducts.Count == 0)
+      {
+        return NotFound(new { Message = "No low stock products found." });
+      }
+      return Ok(lowStockProducts);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
+  [HttpPost("notifyVendor/{productId}")]
+  public async Task<IActionResult> NotifyLowStockProductToVendor(string productId)
+  {
+    try
+    {
+      var userId = await AuthorizeAdminAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+      var product = await _mongoDBService.GetProductAsync(productId);
+      if (product is null)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+
+      var vendor = await _mongoDBService.GetVendorByIdAsync(product.VenderId);
+      if (vendor is null)
+      {
+        return NotFound(new { Message = "Vendor not found" });
+      }
+
+      var stockAlert = new StockLimitAlert(_emailService);
+      string alertMessage = $"The stock level for '{product.ProductName}' is Low. Current stock: {product.StockLevel}.";
+      await _emailService.SendEmailAsync(vendor.Email, "Action Required: Low Stock Alert", alertMessage);
+
+      var notification = await _mongoDBService.CreateNotification(new Notification
+      {
+        Message = alertMessage,
+        Date = DateTime.Now,
+        Read = false,
+        UserId = vendor.Id
+      });
+      return Ok(new { Message = "Email sent successfully!" });
+
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
   [HttpGet("low-stock-products")]
   public async Task<ActionResult<int>> GetLowStockProducts()
   {
@@ -165,6 +231,41 @@ public class InventoryController : ControllerBase
 
     // Check if the user is an vender
     var VenderUser = await _mongoDBService.GetVendorByIdAsync(idClaim.Value);
+    if (VenderUser == null)
+    {
+      return null;
+    }
+
+    return idClaim.Value;
+  }
+
+  private async Task<string> AuthorizeAdminAsync()
+  {
+    // Validate token
+    var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""); // Remove "Bearer " prefix
+    if (string.IsNullOrEmpty(token))
+    {
+      return null;
+    }
+
+    // Call JWT Service to validate the token
+    var tokenverify = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+    // Check if the token is valid
+    if (tokenverify == null)
+    {
+      return null;
+    }
+
+    // Check if the user ID is in the token
+    var idClaim = tokenverify.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+    if (idClaim == null)
+    {
+      return null;
+    }
+
+    // Check if the user is an vender
+    var VenderUser = await _mongoDBService.GetAdminByIdAsync(idClaim.Value);
     if (VenderUser == null)
     {
       return null;
