@@ -17,11 +17,16 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sliit.shopease.R;
+import com.sliit.shopease.constants.ApiEndPoints;
+import com.sliit.shopease.constants.PrefKeys;
 import com.sliit.shopease.helpers.DialogHelper;
 import com.sliit.shopease.helpers.NetworkHelper;
 import com.sliit.shopease.helpers.SharedPreferencesHelper;
 import com.sliit.shopease.interfaces.NetworkCallback;
 import com.sliit.shopease.models.ShopEaseError;
+import com.sliit.shopease.models.User;
+
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +36,6 @@ public class SignInActivity extends AppCompatActivity {
   private EditText edt_pass;
   private SharedPreferencesHelper sharedPreferencesHelper;
   private NetworkHelper networkHelper;
-  private TextView txt_register;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +58,17 @@ public class SignInActivity extends AppCompatActivity {
       return insets;
     });
 
+    // If navigating here after registration
+    boolean registrationSuccess = getIntent().getBooleanExtra("REGISTRATION_SUCCESS", false);
+    if (registrationSuccess) {
+      // Show success dialog
+      DialogHelper.showAlert(this, "Success", "Registration successful! Please log in.");
+    }
+
     edt_email = findViewById(R.id.signIn_edt_email);
     edt_pass = findViewById(R.id.signIn_edt_password);
-    txt_register = findViewById(R.id.txt_register);
 
+    TextView txt_register = findViewById(R.id.login_txt_register);
     Button btn_signIn = findViewById(R.id.signIn_btn_signIn);
     FloatingActionButton fab = findViewById(R.id.fab);
 
@@ -66,20 +77,21 @@ public class SignInActivity extends AppCompatActivity {
 
     fab.setOnClickListener(view -> showBaseUrlDialog());
     btn_signIn.setOnClickListener(this::signIn);
-    txt_register.setOnClickListener(view -> goRegister());
+    txt_register.setOnClickListener(view -> goToRegister());
   }
 
   void showBaseUrlDialog() {
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
     DialogHelper.showEdtTextDialog(this, "Base URL", baseUrl, new DialogHelper.DialogCallback() {
       @Override
       public void onOk(String inputText) {
-        sharedPreferencesHelper.saveString("base_url", inputText);
+        sharedPreferencesHelper.saveString(PrefKeys.BASE_URL, inputText);
       }
 
       @Override
       public void onCancel() {
+        // Do Nothing
       }
     });
   }
@@ -109,12 +121,34 @@ public class SignInActivity extends AppCompatActivity {
     jsonBody.put("role", "customer");
 
 
-    networkHelper.post(this, "/api/user/login", jsonBody, new NetworkCallback() {
+    networkHelper.post(this, ApiEndPoints.LOGIN, jsonBody, new NetworkCallback() {
       @Override
       public void onSuccess(String response) {
         System.out.println(response);
         DialogHelper.hideLoading();
-        DialogHelper.showAlert(SignInActivity.this, "Success", "Login successful");
+
+        try {
+          final JSONObject res = new JSONObject(response);
+          final JSONObject userData = new JSONObject(res.getString("admin"));
+
+          final User user = new User(
+              userData.getString("id"),
+              userData.getString("username"),
+              userData.getString("email"),
+              res.getString("token")
+          );
+
+          sharedPreferencesHelper.saveString(PrefKeys.USER, user.toJson());
+
+        } catch (Exception e) {
+          e.printStackTrace();
+          System.out.println(e.getMessage());
+          DialogHelper.hideLoading();
+          DialogHelper.showAlert(SignInActivity.this, "Error: ", e.getMessage());
+          return;
+        }
+
+        goToMain();
       }
 
       @Override
@@ -128,9 +162,15 @@ public class SignInActivity extends AppCompatActivity {
     });
   }
 
-  void goRegister(){
+  void goToRegister() {
     Intent intent = new Intent(this, RegisterActivity.class);
     startActivity(intent);
+  }
+
+  void goToMain() {
+    Intent intent = new Intent(this, MainActivity.class);
+    startActivity(intent);
+    finish();
   }
 }
 

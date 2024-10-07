@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.sliit.shopease.Config;
 import com.sliit.shopease.R;
+import com.sliit.shopease.constants.PrefKeys;
+import com.sliit.shopease.helpers.SharedPreferencesHelper;
 import com.sliit.shopease.models.Category;
 import com.sliit.shopease.models.Product;
 
@@ -85,7 +87,10 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void checkUser() {
-    if (!Config.isSignedIn) {
+    SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(MainActivity.this);
+    String token = sharedPreferencesHelper.getString(PrefKeys.USER, "");
+
+    if (token.isEmpty()) {
       Intent intent = new Intent(MainActivity.this, SignInActivity.class);
       startActivity(intent);
       finish();

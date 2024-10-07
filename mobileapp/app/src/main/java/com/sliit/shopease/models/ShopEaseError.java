@@ -36,7 +36,12 @@ public class ShopEaseError {
   }
 
   public String getMessage() {
-    return message;
+    String errorMsg = message;
+
+    if(status == 409){
+      errorMsg = "User already exists";
+    }
+    return errorMsg;
   }
 
   public Response getResponse() {

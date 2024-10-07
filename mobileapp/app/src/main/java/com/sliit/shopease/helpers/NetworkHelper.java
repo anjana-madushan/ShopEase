@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.sliit.shopease.constants.PrefKeys;
 import com.sliit.shopease.interfaces.NetworkCallback;
 import com.sliit.shopease.models.ShopEaseError;
 
@@ -46,7 +47,7 @@ public class NetworkHelper {
   // Perform GET Request
   public void get(Context context, String url, NetworkCallback callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
     Request request = new Request.Builder()
         .url(baseUrl + url)
@@ -77,7 +78,7 @@ public class NetworkHelper {
   // Perform POST Request
   public void post(Context context, String url, Map<String, String> jsonBody, NetworkCallback callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
     String jsonString = new Gson().toJson(jsonBody);
     RequestBody body = RequestBody.create(jsonString, JSON);
@@ -111,7 +112,7 @@ public class NetworkHelper {
   // Perform PUT Request
   public void put(Context context, String url, String jsonBody, NetworkCallback callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
     RequestBody body = RequestBody.create(jsonBody, JSON);
     Request request = new Request.Builder()
@@ -144,7 +145,7 @@ public class NetworkHelper {
   // Perform DELETE Request
   public void delete(Context context, String url, NetworkCallback callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
     Request request = new Request.Builder()
         .url(baseUrl + url)

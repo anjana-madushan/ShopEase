@@ -24,7 +24,7 @@
 
 
     <EditText
-        android:id="@+id/edTxt_name"
+        android:id="@+id/reg_edt_email"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:autofillHints="name"
@@ -64,7 +64,7 @@
         android:inputType="textEmailAddress"
         android:padding="10dp"
         android:textColorHint="@color/primary_darker"
-        app:layout_constraintBottom_toTopOf="@+id/edTxt_name"
+        app:layout_constraintBottom_toTopOf="@+id/reg_edt_email"
         tools:layout_editor_absoluteX="39dp" />
 
     <Button
