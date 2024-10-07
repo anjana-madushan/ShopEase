@@ -136,6 +136,65 @@ public class CommentController : ControllerBase
     }
   }
 
+  //Vendor Ranking List Based on Rating 
+  [HttpGet("rankings")]
+  public async Task<ActionResult<Comments>> GetVendorRankingList()
+  {
+    try
+    {
+      var customerId = await AuthorizeCustomerAsync();
+      if (customerId == null)
+      {
+        return Unauthorized("Unauthorised User");
+      }
+      var comments = await _mongoDBService.GetCommentsAsync();
+
+      if (comments.Count == 0)
+      {
+        return NotFound(new { Message = "Comments not found" });
+      }
+
+      var vendorRatingsList = comments.GroupBy(comment => comment.VendorId).Select(group => new
+      {
+        VendorId = group.Key,
+        AverageRating = group.Average(comment => comment.Rating),
+        TotalRatings = group.Count()
+      }).OrderByDescending(v => v.AverageRating).ToList();
+
+      var vendors = await _mongoDBService.GetVendorsAsync();
+      if (vendors.Count == 0)
+      {
+        return NotFound(new { Message = "Vendors not found" });
+      }
+
+      var vendorRatings = vendorRatingsList
+            .Join(vendors,
+                rating => rating.VendorId,
+                vendor => vendor.Id,
+                (rating, vendor) => new
+                {
+                  rating.VendorId,
+                  vendor.Username,
+                  rating.AverageRating,
+                  rating.TotalRatings
+                })
+            .ToList();
+      if (vendorRatings.Count == 0)
+      {
+        return NoContent();
+      }
+
+      return Ok(vendorRatings);
+    }
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Mongo DB error occurred while getting this comment", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
+  }
 
   [HttpPut("{id:length(24)}")]
   public async Task<IActionResult> Update(string id, CommentDto updatedCommentdto)
@@ -207,6 +266,8 @@ public class CommentController : ControllerBase
     }
 
   }
+
+
 
   private async Task<string> AuthorizeVenderAsync()
   {

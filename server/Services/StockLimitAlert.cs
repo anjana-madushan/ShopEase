@@ -16,11 +16,12 @@ namespace server.Services
 
     public async Task<string> TriggerLowStockAlert(Product product, int updatedStock, string email)
     {
-      string alertMessage = $"Low stock alert for product {product.ProductName}. Current stock: {updatedStock}";
+      string alertMessage = $"Low stock alert for '{product.ProductName}'. Current stock: {updatedStock}, minimum required: {product.MinStockLevel}. Please restock soon.";
+
 
       await _emailService.SendEmailAsync(
         email,
-        subject: "Low Stock Alert",
+        subject: $"Action Required: Low Stock Alert for {product.ProductName}",
         alertMessage
       );
 

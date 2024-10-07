@@ -8,9 +8,18 @@ using api.Dtos.Account;
 
 namespace MongoExample.Controllers
 {
-    [Route("api/user")]
-    [ApiController]
-    public class UserController : ControllerBase
+  [Route("api/user")]
+  [ApiController]
+  public class UserController : ControllerBase
+  {
+    private readonly MongoDBService _mongoDBService;
+    private readonly PasswordService _passwordService;
+    private readonly JwtSettings _jwtSettings;
+    private readonly EmailService _emailService;
+    private readonly OTPService _otpService;
+
+    // Ensure this is the only constructor
+    public UserController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService, OTPService otpService, EmailService emailService)
     {
         private readonly MongoDBService _mongoDBService;
         private readonly PasswordService _passwordService;
@@ -280,9 +289,7 @@ namespace MongoExample.Controllers
 public async Task<IActionResult> GetAllUsers(string role)
 {
     try
-    {
-
-        //Validate token
+    {        //Validate token
         var token = Request.Headers["Authorization"];
         if (token.Count == 0)
         {
@@ -795,6 +802,7 @@ public async Task<IActionResult> GetDeactivatedCustomers()
         var deactivatedCustomers = await _mongoDBService.GetDeactivatedCustomersAsync();
 
         return Ok(deactivatedCustomers);
+
     }
     catch (Exception ex)
     {
@@ -987,6 +995,152 @@ public async Task<IActionResult> ResetPassword(string email, string role, [FromB
 
 }
 
-    }
-}
+        // Send OTP to the user
+        await _otpService.SendOTPAsync(email);
 
+        return Ok("An OTP has been sent to your email.");
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+      }
+    }
+
+    //Validate OTP for password reset
+    [HttpPost("validateOTP/{email}/{role}")]
+    public async Task<IActionResult> ValidateOTP(string email, string role, [FromBody] OTPDto otp)
+    {
+      try
+      {
+        if (!ModelState.IsValid)
+        {
+          return BadRequest(ModelState);
+        }
+
+        // Check if the user exists
+        dynamic existingUser = null;
+
+        //Validate OTP
+        if (string.IsNullOrEmpty(otp.Code))
+        {
+          return BadRequest("Please provide the OTP code.");
+        }
+
+        // Centralized user retrieval based on role
+        switch (role.ToLower())
+        {
+          case "admin":
+            existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
+            break;
+          case "csr":
+            existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
+            break;
+          case "vendor":
+            existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
+            break;
+          case "customer":
+            existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
+            break;
+          default:
+            return BadRequest("Invalid role provided.");
+        }
+
+        if (existingUser == null)
+        {
+          return NotFound("A user with the provided email does not exist.");
+        }
+
+        // Validate the OTP
+        bool isOTPValid = _otpService.ValidateOTP(email, otp.Code);
+        if (!isOTPValid)
+        {
+          return Unauthorized("The provided OTP is incorrect.");
+        }
+
+        return Ok("The OTP is valid.");
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+      }
+    }
+
+    //Reset Password
+    [HttpPut("resetPassword/{email}/{role}")]
+    public async Task<IActionResult> ResetPassword(string email, string role, [FromBody] ResetPasswordDto resetPassword)
+    {
+      try
+      {
+        if (!ModelState.IsValid)
+        {
+          return BadRequest(ModelState);
+        }
+
+        // Check if the user exists
+        dynamic existingUser = null;
+
+        //Validate password
+        if (string.IsNullOrEmpty(resetPassword.Password))
+        {
+          return BadRequest("Please provide the new password.");
+        }
+        //Validate OTP
+        if (string.IsNullOrEmpty(resetPassword.Code))
+        {
+          return BadRequest("Please provide the OTP code.");
+        }
+
+        // Validate the OTP
+        bool isOTPValid = _otpService.ValidateOTPOnReset(email, resetPassword.Code);
+        if (!isOTPValid)
+        {
+          return Unauthorized("The provided OTP is incorrect.");
+        }
+
+
+        // Centralized user retrieval based on role
+        switch (role.ToLower())
+        {
+          case "admin":
+            existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
+            break;
+          case "csr":
+            existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
+            break;
+          case "vendor":
+            existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
+            break;
+          case "customer":
+            existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
+            break;
+          default:
+            return BadRequest("Invalid role provided.");
+        }
+
+        if (existingUser == null)
+        {
+          return NotFound("A user with the provided email does not exist.");
+        }
+
+        // Hash the new password
+        string hashedPassword = _passwordService.HashPassword(resetPassword.Password);
+
+        // Update the user password
+        existingUser.Password = hashedPassword;
+
+        var userId = existingUser.Id;
+
+        // Save the updated user details
+        await _mongoDBService.UpdateUserPasswordAsync(userId, hashedPassword, role);
+
+        return Ok("Password reset successful.");
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+      }
+
+    }
+
+  }
+}
