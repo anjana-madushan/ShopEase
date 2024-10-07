@@ -117,6 +117,14 @@ public class InventoryController : ControllerBase
       {
         var stockAlert = new StockLimitAlert(_emailService);
         await stockAlert.TriggerLowStockAlert(product, updateStock, user.Email);
+
+        var notification = await _mongoDBService.CreateNotification(new Notification
+        {
+          Message = $"Low stock alert: '{product.ProductName}' is below minimum level. Current stock: {updateStock}.",
+          Date = DateTime.Now,
+          Read = false,
+          UserId = user.Id
+        });
       }
 
       return Ok(new { Message = "Stock deducted successfully", RemainingStock = updateStock });
