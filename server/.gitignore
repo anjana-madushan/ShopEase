@@ -63,4 +63,6 @@ appsettings.json
 *.db
 *.jfm
 *.jfm.*
+
+appsettings.json
 .fake
