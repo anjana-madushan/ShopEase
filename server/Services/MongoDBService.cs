@@ -247,10 +247,7 @@ namespace server.Services
 
     //Get CSR by Email
     public async Task<CSR?> GetCSRByEmailAsync(string email) =>
-        await _csrCollection.Find(x => x.Email == email)
-        .Project<CSR>(Builders<CSR>.Projection
-        .Exclude(csr => csr.Password))
-        .FirstOrDefaultAsync();
+        await _csrCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
 
 
     //Create a new CSR
@@ -262,10 +259,7 @@ namespace server.Services
 
     //Get vendor by email
     public async Task<Vendor?> GetVendorByEmailAsync(string email) =>
-        await _vendorCollection.Find(x => x.Email == email)
-        .Project<Vendor>(Builders<Vendor>.Projection
-        .Exclude(vendor => vendor.Password))
-        .FirstOrDefaultAsync();
+        await _vendorCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
 
     //Create a new Vendor
     public async Task<Vendor> CreateVendorAsync(Vendor vendor)
@@ -283,10 +277,8 @@ namespace server.Services
 
     //Get customer by email
     public async Task<Users?> GetCustomerByEmailAsync(string email) =>
-        await _customerCollection.Find(x => x.Email == email)
-        .Project<Users>(Builders<Users>.Projection
-        .Exclude(customer => customer.Password))
-        .FirstOrDefaultAsync();
+        await _customerCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+
 
 
     // Update User by ID based on role
