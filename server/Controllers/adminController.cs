@@ -196,6 +196,12 @@ public class AdminController : ControllerBase
                 Email = admin.Email
             };
 
+            var responseAdmin = new Admin
+            {
+                Username = admin.Username,
+                Email = admin.Email
+            };
+
             await _mongoDBService.CreateAdminAsync(newAdmin);
 
             //Find the admin by id and update the admin List
@@ -209,7 +215,7 @@ public class AdminController : ControllerBase
       $"Your Email is {admin.Email}\nPassword: {admin.Password}\nPlease change your password after login."
   );
 
-            return CreatedAtAction(nameof(Get), new { id = newAdmin.Id }, newAdmin);
+            return CreatedAtAction(nameof(Get), new { id = newAdmin.Id }, responseAdmin);
         }
         catch (Exception ex)
         {
@@ -306,6 +312,13 @@ public class AdminController : ControllerBase
                 Email = csr.Email
             };
 
+            var responseCSR = new CSR
+            {
+                Username = csr.Username,
+                Password = hashedPassword,
+                Email = csr.Email
+            };
+
             await _mongoDBService.CreateCSRAsync(newCSR);
 
             //Send email to CSR with the password and email
@@ -314,7 +327,7 @@ public class AdminController : ControllerBase
             adminList.CSRCreated.Add(newCSR);
             await _mongoDBService.UpdateAdminAsync(adminList.Id, adminList);
 
-            return CreatedAtAction(nameof(Get), new { id = newCSR.Id }, newCSR);
+            return CreatedAtAction(nameof(Get), new { id = newCSR.Id }, responseCSR);
         }
         catch (Exception ex)
         {
@@ -389,6 +402,13 @@ public class AdminController : ControllerBase
                 Email = vendor.Email
             };
 
+            var resVendor = new Vendor
+            {
+                Username = vendor.Username,
+                Email = vendor.Email
+            };
+
+
             await _mongoDBService.CreateVendorAsync(newVendor);
 
             //Send email to Vendor with the password and email
@@ -398,7 +418,7 @@ public class AdminController : ControllerBase
             adminList.VendorCreated.Add(newVendor);
             await _mongoDBService.UpdateAdminAsync(adminList.Id, adminList);
 
-            return CreatedAtAction(nameof(Get), new { id = newVendor.Id }, newVendor);
+            return CreatedAtAction(nameof(Get), new { id = newVendor.Id }, resVendor);
         }
         catch (Exception ex)
         {

@@ -82,7 +82,32 @@ namespace MongoExample.Controllers
                 // Deduct the ordered quantity from the available stock
                 int updatedQuantity = productDetail.StockLevel - product.Value.Quantity;
                 await _mongoDBService.DeductAvailableStock(product.Key, updatedQuantity);
+
+                //If stock level is less than minimum stock level, send email notification
+                if (updatedQuantity < productDetail.MinStockLevel)
+                {
+                    //Get Vendor by Id
+                    var vendorDetail = await _mongoDBService.GetVendorByIdAsync(productDetail.VenderId);
+                    await _emailService.SendEmailAsync(vendorDetail.Email, "Low stock level", $"The stock level for product {productDetail.ProductName} is low. Available: {updatedQuantity}");
+                    //Add Notification
+                    var lowStockNotification = await _mongoDBService.CreateNotification(new Notification
+                    {
+                        Message = $"Low stock level for product {productDetail.ProductName}",
+                        Date = DateTime.Now,
+                        Read = false,
+                        UserId = orderDTO.UserId
+                    });
+
+                    if (lowStockNotification == null)
+                    {
+                        return BadRequest("Failed to add notification.");
+                    }
+                }
+
+
+
             }
+
 
 
             //Create a random unique 4 digit order ID not in the database
@@ -177,6 +202,41 @@ namespace MongoExample.Controllers
             if (order.Status == server.Models.OrderStatus.Dispatched)
             {
                 return BadRequest("Order already dispatched. Cannot cancel.");
+            }
+
+            //Update the stock level for each product
+            foreach (var product in order.Products)
+            {
+                var productDetail = await _mongoDBService.GetProductAsync(product.Key);
+                if (productDetail == null || productDetail.Id != product.Key)
+                {
+                    return NotFound("Product not found or product ID does not match.");
+                }
+
+                // Add the ordered quantity back to the available stock
+                int updatedQuantity = productDetail.StockLevel + product.Value.Quantity;
+                await _mongoDBService.DeductAvailableStock(product.Key, updatedQuantity);
+
+                //If stock level is less than minimum stock level, send email notification
+                if (updatedQuantity < productDetail.MinStockLevel)
+                {
+                    //Get Vendor by Id
+                    var vendorDetail = await _mongoDBService.GetVendorByIdAsync(productDetail.VenderId);
+                    await _emailService.SendEmailAsync(vendorDetail.Email, "Low stock level", $"The stock level for product {productDetail.ProductName} is low. Available: {updatedQuantity}");
+                    //Add Notification
+                    var lowStockNotification = await _mongoDBService.CreateNotification(new Notification
+                    {
+                        Message = $"Low stock level for product {productDetail.ProductName}",
+                        Date = DateTime.Now,
+                        Read = false,
+                        UserId = order.UserId
+                    });
+
+                    if (lowStockNotification == null)
+                    {
+                        return BadRequest("Failed to add notification.");
+                    }
+                }
             }
 
             // Update the order status to Cancelled
@@ -328,6 +388,7 @@ namespace MongoExample.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
         //Update the status of order to delivered by admin || vendor || csr
         [HttpPut("order-status-delivered/{orderId}")]
         public async Task<IActionResult> UpdateOrderStatusDelivered(string orderId, StatusUpdateDTO statusUpdateDTO)
@@ -666,6 +727,41 @@ namespace MongoExample.Controllers
                     return BadRequest("Order already cancelled.");
                 }
 
+                //Update the stock level for each product
+                foreach (var product in order.Products)
+                {
+                    var productDetail = await _mongoDBService.GetProductAsync(product.Key);
+                    if (productDetail == null || productDetail.Id != product.Key)
+                    {
+                        return NotFound("Product not found or product ID does not match.");
+                    }
+
+                    // Add the ordered quantity back to the available stock
+                    int updatedQuantity = productDetail.StockLevel + product.Value.Quantity;
+                    await _mongoDBService.DeductAvailableStock(product.Key, updatedQuantity);
+
+                    //If stock level is less than minimum stock level, send email notification
+                    if (updatedQuantity < productDetail.MinStockLevel)
+                    {
+                        //Get Vendor by Id
+                        var vendorDetail = await _mongoDBService.GetVendorByIdAsync(productDetail.VenderId);
+                        await _emailService.SendEmailAsync(vendorDetail.Email, "Low stock level", $"The stock level for product {productDetail.ProductName} is low. Available: {updatedQuantity}");
+                        //Add Notification
+                        var lowStockNotification = await _mongoDBService.CreateNotification(new Notification
+                        {
+                            Message = $"Low stock level for product {productDetail.ProductName}",
+                            Date = DateTime.Now,
+                            Read = false,
+                            UserId = order.UserId
+                        });
+
+                        if (lowStockNotification == null)
+                        {
+                            return BadRequest("Failed to add notification.");
+                        }
+                    }
+                }
+
                 dynamic userDetail = null;
                 //Verify the user role
                 if (statusUpdateDTO.Role == "csr")
@@ -870,6 +966,7 @@ namespace MongoExample.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
         //Get orders cancelled by CSR  by id
         [HttpGet("orders-cancelled-by-csr/{csrId}")]
         public async Task<IActionResult> GetOrdersCancelledByCSR(string csrId)
@@ -981,6 +1078,41 @@ namespace MongoExample.Controllers
                     order.Email = orderDTO.Email;
                 }
 
+                //Take the old stock level in the old order and add the quantity back to the stock level
+                foreach (var product in order.Products)
+                {
+                    var productDetail = await _mongoDBService.GetProductAsync(product.Key);
+                    if (productDetail == null || productDetail.Id != product.Key)
+                    {
+                        return NotFound("Product not found or product ID does not match.");
+                    }
+
+                    // Add the ordered quantity back to the available stock
+                    int updatedQuantity = productDetail.StockLevel + product.Value.Quantity;
+                    await _mongoDBService.DeductAvailableStock(product.Key, updatedQuantity);
+
+                    //If stock level is less than minimum stock level, send email notification
+                    if (updatedQuantity < productDetail.MinStockLevel)
+                    {
+                        //Get Vendor by Id
+                        var vendorDetail = await _mongoDBService.GetVendorByIdAsync(productDetail.VenderId);
+                        await _emailService.SendEmailAsync(vendorDetail.Email, "Low stock level", $"The stock level for product {productDetail.ProductName} is low. Available: {updatedQuantity}");
+                        //Add Notification
+                        var lowStockNotification = await _mongoDBService.CreateNotification(new Notification
+                        {
+                            Message = $"Low stock level for product {productDetail.ProductName}",
+                            Date = DateTime.Now,
+                            Read = false,
+                            UserId = order.UserId
+                        });
+
+                        if (lowStockNotification == null)
+                        {
+                            return BadRequest("Failed to add notification.");
+                        }
+                    }
+                }
+
                 if (orderDTO.Products != null && orderDTO.Products.Count > 0)
                 {
                     // Check if the product exists
@@ -991,25 +1123,56 @@ namespace MongoExample.Controllers
                         {
                             return NotFound("Product not found or product ID does not match.");
                         }
+
+                            // Check if there is enough quantity
+                            if (productDetail.StockLevel < product.Value.Quantity)
+                            {
+                                return BadRequest($"Insufficient stock for product {productDetail.ProductName}. Available: {productDetail.StockLevel}, Requested: {product.Value.Quantity}");
+                            }
+
+                            // Deduct the ordered quantity from the available stock
+                            int updatedQuantity = productDetail.StockLevel - product.Value.Quantity;
+                            await _mongoDBService.DeductAvailableStock(product.Key, updatedQuantity);
+
+                            //If stock level is less than minimum stock level, send email notification
+                            if (updatedQuantity < productDetail.MinStockLevel)
+                            {
+                                //Get Vendor by Id
+                                var vendorDetail = await _mongoDBService.GetVendorByIdAsync(productDetail.VenderId);
+                                await _emailService.SendEmailAsync(vendorDetail.Email, "Low stock level", $"The stock level for product {productDetail.ProductName} is low. Available: {updatedQuantity}");
+                                //Add Notification
+                                var lowStockNotification = await _mongoDBService.CreateNotification(new Notification
+                                {
+                                    Message = $"Low stock level for product {productDetail.ProductName}",
+                                    Date = DateTime.Now,
+                                    Read = false,
+                                    UserId = order.UserId
+                                });
+
+                                if (lowStockNotification == null)
+                                {
+                                    return BadRequest("Failed to add notification.");
+                                }
+                            }
+                        }
+
+                        // Update the products list and totals
+                        order.Products = orderDTO.Products.ToDictionary(
+                            x => x.Key,
+                            x => new ProductDetails
+                            {
+                                Price = x.Value.Price,
+                                Quantity = x.Value.Quantity
+                            }
+                        );
+                        order.TotalPrice = (decimal)orderDTO.TotalPrice;
+                        order.TotalQty = (int)orderDTO.TotalQty;
                     }
 
-                    // Update the products list and totals
-                    order.Products = orderDTO.Products.ToDictionary(
-                        x => x.Key,
-                        x => new ProductDetails
-                        {
-                            Price = x.Value.Price,
-                            Quantity = x.Value.Quantity
-                        }
-                    );
-                    order.TotalPrice = (decimal)orderDTO.TotalPrice;
-                    order.TotalQty = (int)orderDTO.TotalQty;
+                    await _mongoDBService.UpdateOrder(order);
+
+                    return Ok("Order details updated successfully.");
                 }
-
-                await _mongoDBService.UpdateOrder(order);
-
-                return Ok("Order details updated successfully.");
-            }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);

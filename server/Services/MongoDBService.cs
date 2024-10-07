@@ -162,9 +162,24 @@ namespace server.Services
     // Create admin
     public async Task<Admin> CreateAdminAsync(Admin admin)
     {
+      if (admin == null)
+      {
+        throw new ArgumentNullException(nameof(admin), "Admin cannot be null.");
+      }
+
       await _adminCollection.InsertOneAsync(admin);
-      return admin;
+      var adminWithoutPassword = new Admin
+      {
+        Id = admin.Id,
+        Username = admin.Username,
+        Email = admin.Email,
+        AdminsCreated = admin.AdminsCreated,
+        CSRCreated = admin.CSRCreated
+      };
+
+      return adminWithoutPassword;
     }
+
 
     //Get admin by ID
     public async Task<Admin?> GetAdminByIdAsync(string id) =>
