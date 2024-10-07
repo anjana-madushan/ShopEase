@@ -72,11 +72,18 @@ namespace MongoExample.Controllers
                     return Unauthorized("The provided password is incorrect.");
                 }
 
+                var userResponse = new
+                {
+                    Id = existingUser.Id,
+                    Username = existingUser.Username,
+                    Email = existingUser.Email,
+                    Role = login.Role.ToLower()
+                };
 
                 // Generate a JWT token and expire in 24 hours
                 var token = JWTService.GenerateToken(existingUser, _jwtSettings.SecurityKey, 1440);
 
-                return Ok(new { admin = existingUser, token = token });
+                return Ok(new { user = userResponse, token = token });
             }
             catch (Exception ex)
             {
@@ -117,7 +124,16 @@ namespace MongoExample.Controllers
                 // Save the user to the database
                 await _mongoDBService.CreateCustomerAsync(newUser);
 
-                return Ok(newUser);
+                //Response
+                var userResponse = new
+                {
+                    Id = newUser.Id,
+                    Username = newUser.Username,
+                    Email = newUser.Email,
+                    Role = "customer"
+                };
+
+                return Ok(userResponse);
             }
             catch (Exception ex)
             {
@@ -215,7 +231,16 @@ namespace MongoExample.Controllers
                 // Save the updated user details to the database
                 await _mongoDBService.UpdateUserAsync(id, updatedUser.Role, existingUser);
 
-                return Ok(existingUser);
+                //Response
+                var userResponse = new
+                {
+                    Id = existingUser.Id,
+                    Username = existingUser.Username,
+                    Email = existingUser.Email,
+                    Role = updatedUser.Role.ToLower()
+                };
+
+                return Ok(userResponse);
             }
             catch (Exception ex)
             {
@@ -264,6 +289,12 @@ namespace MongoExample.Controllers
                     default:
                         return BadRequest("Invalid role provided.");
                 }
+
+                if (existingUsers == null)
+                {
+                    return NotFound("No users found.");
+                }
+
 
                 return Ok(existingUsers);
             }

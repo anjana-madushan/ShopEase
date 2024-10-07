@@ -328,26 +328,46 @@ namespace server.Services
     //Get all Vendors
     public async Task<List<Vendor>> GetVendorsAsync()
     {
-      return await _vendorCollection.Find(new BsonDocument()).ToListAsync();
+      var vendors = await _vendorCollection.Find(new BsonDocument())
+          .Project<Vendor>(Builders<Vendor>.Projection
+          .Exclude(vendor => vendor.Password)) 
+          .ToListAsync();
+
+      return vendors;
     }
 
     //Get all Customers
     public async Task<List<Users>> GetAllCustomersAsync()
     {
-      return await _customerCollection.Find(new BsonDocument()).ToListAsync();
+      var customers = await _customerCollection.Find(new BsonDocument())
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password)) 
+          .ToListAsync();
+
+      return customers;
     }
 
     ///Get all csr
     public async Task<List<CSR>> GetAllCSRsAsync()
     {
-      return await _csrCollection.Find(new BsonDocument()).ToListAsync();
+      var csrs = await _csrCollection.Find(new BsonDocument())
+          .Project<CSR>(Builders<CSR>.Projection
+          .Exclude(csr => csr.Password)) 
+          .ToListAsync();
+
+      return csrs;
     }
 
     //Get all Admins
-    public async Task<List<Admin>> GetAllAdminsAsync()
-    {
-      return await _adminCollection.Find(new BsonDocument()).ToListAsync();
-    }
+public async Task<List<Admin>> GetAllAdminsAsync()
+{
+    var admins = await _adminCollection.Find(new BsonDocument())
+        .Project<Admin>(Builders<Admin>.Projection
+        .Exclude(admin => admin.Password)) 
+        .ToListAsync();
+
+    return admins;
+}
 
     //Update Customer 
     public async Task UpdateCustomer(string customerId, Users updatedCustomer)
