@@ -8,18 +8,9 @@ using api.Dtos.Account;
 
 namespace MongoExample.Controllers
 {
-  [Route("api/user")]
-  [ApiController]
-  public class UserController : ControllerBase
-  {
-    private readonly MongoDBService _mongoDBService;
-    private readonly PasswordService _passwordService;
-    private readonly JwtSettings _jwtSettings;
-    private readonly EmailService _emailService;
-    private readonly OTPService _otpService;
-
-    // Ensure this is the only constructor
-    public UserController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService, OTPService otpService, EmailService emailService)
+    [Route("api/user")]
+    [ApiController]
+    public class UserController : ControllerBase
     {
         private readonly MongoDBService _mongoDBService;
         private readonly PasswordService _passwordService;
@@ -27,7 +18,7 @@ namespace MongoExample.Controllers
         private readonly EmailService _emailService;
         private readonly OTPService _otpService;
 
-        // Ensure this is the only constructor
+        // Constructor
         public UserController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService, OTPService otpService, EmailService emailService)
         {
             _mongoDBService = mongoDBService;
@@ -259,11 +250,12 @@ namespace MongoExample.Controllers
                 {
                     existingUser.Password = existingUser.Password;
                 }
-          
 
-                if (string.IsNullOrEmpty(updatedUser.Username) && string.IsNullOrEmpty(updatedUser.Email) && string.IsNullOrEmpty(updatedUser.Password) && string.IsNullOrEmpty(updatedUser.Role)){
+
+                if (string.IsNullOrEmpty(updatedUser.Username) && string.IsNullOrEmpty(updatedUser.Email) && string.IsNullOrEmpty(updatedUser.Password) && string.IsNullOrEmpty(updatedUser.Role))
+                {
                     return BadRequest("Please provide the details to update.");
-            }
+                }
 
                 //Response
                 var userResponse = new
@@ -274,873 +266,729 @@ namespace MongoExample.Controllers
                     Role = updatedUser.Role.ToLower()
                 };
 
-            await _mongoDBService.UpdateUserAsync(id, updatedUser.Role.ToLower(), existingUser);
+                await _mongoDBService.UpdateUserAsync(id, updatedUser.Role.ToLower(), existingUser);
 
-            return Ok(userResponse);
-        }
+                return Ok(userResponse);
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-// Get all user details based on role
-[HttpGet("all/{role}")]
-public async Task<IActionResult> GetAllUsers(string role)
-{
-    try
-    {        //Validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
-        {
-            return Unauthorized("Token is required.");
-        }
-
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
-        }
-        // Declare the variable for existing user
-        dynamic existingUsers = null;
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-            case "admin":
-                existingUsers = await _mongoDBService.GetAllAdminsAsync();
-                break;
-            case "csr":
-                existingUsers = await _mongoDBService.GetAllCSRsAsync();
-                break;
-            case "vendor":
-                existingUsers = await _mongoDBService.GetVendorsAsync();
-                break;
-            case "customer":
-                existingUsers = await _mongoDBService.GetAllCustomersAsync();
-                break;
-            default:
-                return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUsers == null)
-        {
-            return NotFound("No users found.");
-        }
-
-
-        return Ok(existingUsers);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-// Get user details by ID based on role
-[HttpGet("{role}/{id}")]
-public async Task<IActionResult> GetUserById(string id, string role)
-{
-    try
-    {
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
-        {
-            return Unauthorized("Token is required.");
-        }
-
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
-        }
-        // Declare the variable for existing user
-        dynamic existingUser = null;
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-            case "admin":
-                existingUser = await _mongoDBService.GetAdminByIdAsync(id);
-                break;
-            case "csr":
-                existingUser = await _mongoDBService.GetCSRByIdAsync(id);
-                break;
-            case "vendor":
-                existingUser = await _mongoDBService.GetVendorByIdAsync(id);
-                break;
-            case "customer":
-                existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
-                break;
-            default:
-                return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUser == null)
-        {
-            return NotFound("A user with the provided ID does not exist.");
-        }
-
-        return Ok(existingUser);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Get user details by email based on role
-[HttpGet("{role}/email/{email}")]
-public async Task<IActionResult> GetUserByEmail(string email, string role)
-{
-    try
-    {
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
-        {
-            return Unauthorized("Token is required.");
-        }
-
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
-        }
-        // Declare the variable for existing user
-        dynamic existingUser = null;
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-            case "admin":
-                existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
-                break;
-            case "csr":
-                existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
-                break;
-            case "vendor":
-                existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
-                break;
-            case "customer":
-                existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
-                break;
-            default:
-                return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUser == null)
-        {
-            return NotFound("A user with the provided email does not exist.");
-        }
-
-        return Ok(existingUser);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Approve Customer
-[HttpPut("approve/{id}/{email}")]
-public async Task<IActionResult> ApproveCustomer(string id, string email)
-{
-    try
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        //Validate for parameters
-        if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(email))
-        {
-            return BadRequest("Please provide the customer ID and email.");
-        }
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
-        {
-            return Unauthorized("Token is required.");
-        }
-
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
-        }
-
-        bool isAuthorized = false;
-        bool isAdmin = false;
-        bool isCSR = false;
-        dynamic existingAuthenticator = null;
-
-        // Check if the user is an admin or csr
-        existingAuthenticator = await _mongoDBService.GetAdminByEmailAsync(email);
-
-        if (existingAuthenticator != null)
-        {
-            isAuthorized = true;
-            isAdmin = true;
-        }
-        else
-        {
-            existingAuthenticator = await _mongoDBService.GetCSRByEmailAsync(email);
-            if (existingAuthenticator != null)
-            {
-                isAuthorized = true;
-                isCSR = true;
             }
         }
-        if (!isAuthorized)
+
+        // Get all user details based on role
+        [HttpGet("all/{role}")]
+        public async Task<IActionResult> GetAllUsers(string role)
         {
-            return Unauthorized("You are not authorized to approve customers.");
+            try
+            {        //Validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+                // Declare the variable for existing user
+                dynamic existingUsers = null;
+
+                // Centralized user retrieval based on role
+                switch (role.ToLower())
+                {
+                    case "admin":
+                        existingUsers = await _mongoDBService.GetAllAdminsAsync();
+                        break;
+                    case "csr":
+                        existingUsers = await _mongoDBService.GetAllCSRsAsync();
+                        break;
+                    case "vendor":
+                        existingUsers = await _mongoDBService.GetVendorsAsync();
+                        break;
+                    case "customer":
+                        existingUsers = await _mongoDBService.GetAllCustomersAsync();
+                        break;
+                    default:
+                        return BadRequest("Invalid role provided.");
+                }
+
+                if (existingUsers == null)
+                {
+                    return NotFound("No users found.");
+                }
+
+
+                return Ok(existingUsers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
-        // Get the customer by ID
-        Users existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
-        if (existingUser == null)
+        // Get user details by ID based on role
+        [HttpGet("{role}/{id}")]
+        public async Task<IActionResult> GetUserById(string id, string role)
         {
-            return NotFound("A customer with the provided ID does not exist.");
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+                // Declare the variable for existing user
+                dynamic existingUser = null;
+
+                // Centralized user retrieval based on role
+                switch (role.ToLower())
+                {
+                    case "admin":
+                        existingUser = await _mongoDBService.GetAdminByIdAsync(id);
+                        break;
+                    case "csr":
+                        existingUser = await _mongoDBService.GetCSRByIdAsync(id);
+                        break;
+                    case "vendor":
+                        existingUser = await _mongoDBService.GetVendorByIdAsync(id);
+                        break;
+                    case "customer":
+                        existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
+                        break;
+                    default:
+                        return BadRequest("Invalid role provided.");
+                }
+
+                if (existingUser == null)
+                {
+                    return NotFound("A user with the provided ID does not exist.");
+                }
+
+                return Ok(existingUser);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
-        // Check if the customer is already approved
-        if (existingUser.ApprovalStatus)
+        //Get user details by email based on role
+        [HttpGet("{role}/email/{email}")]
+        public async Task<IActionResult> GetUserByEmail(string email, string role)
         {
-            return Conflict("The customer is already approved.");
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+                // Declare the variable for existing user
+                dynamic existingUser = null;
+
+                // Centralized user retrieval based on role
+                switch (role.ToLower())
+                {
+                    case "admin":
+                        existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
+                        break;
+                    case "csr":
+                        existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
+                        break;
+                    case "vendor":
+                        existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
+                        break;
+                    case "customer":
+                        existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
+                        break;
+                    default:
+                        return BadRequest("Invalid role provided.");
+                }
+
+                if (existingUser == null)
+                {
+                    return NotFound("A user with the provided email does not exist.");
+                }
+
+                return Ok(existingUser);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
-        // Update the customer approval status
-        existingUser.ApprovalStatus = true;
-        existingUser.ApprovedBy = id;
-
-        // Save the updated user details 
-        await _mongoDBService.UpdateCustomer(id, existingUser);
-
-        // Send an email to the customer
-        await _emailService.SendEmailAsync(existingUser.Email, "Account Approval", "Your account has been approved.");
-        return Ok(existingUser);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-// Get all approved customers
-[HttpGet("approved/customers")]
-public async Task<IActionResult> GetApprovedCustomers()
-{
-    try
-    {
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
+        //Approve Customer
+        [HttpPut("approve/{id}/{email}")]
+        public async Task<IActionResult> ApproveCustomer(string id, string email)
         {
-            return Unauthorized("Token is required.");
-        }
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+                //Validate for parameters
+                if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("Please provide the customer ID and email.");
+                }
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
 
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                bool isAuthorized = false;
+                bool isAdmin = false;
+                bool isCSR = false;
+                dynamic existingAuthenticator = null;
+
+                // Check if the user is an admin or csr
+                existingAuthenticator = await _mongoDBService.GetAdminByEmailAsync(email);
+
+                if (existingAuthenticator != null)
+                {
+                    isAuthorized = true;
+                    isAdmin = true;
+                }
+                else
+                {
+                    existingAuthenticator = await _mongoDBService.GetCSRByEmailAsync(email);
+                    if (existingAuthenticator != null)
+                    {
+                        isAuthorized = true;
+                        isCSR = true;
+                    }
+                }
+                if (!isAuthorized)
+                {
+                    return Unauthorized("You are not authorized to approve customers.");
+                }
+
+                // Get the customer by ID
+                Users existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound("A customer with the provided ID does not exist.");
+                }
+
+                // Check if the customer is already approved
+                if (existingUser.ApprovalStatus)
+                {
+                    return Conflict("The customer is already approved.");
+                }
+
+                // Update the customer approval status
+                existingUser.ApprovalStatus = true;
+                existingUser.ApprovedBy = id;
+
+                // Save the updated user details 
+                await _mongoDBService.UpdateCustomer(id, existingUser);
+
+                // Send an email to the customer
+                await _emailService.SendEmailAsync(existingUser.Email, "Account Approval", "Your account has been approved.");
+                return Ok(existingUser);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
         // Get all approved customers
-        var approvedCustomers = await _mongoDBService.GetApprovedCustomersAsync();
-
-        return Ok(approvedCustomers);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Get all unapproved customers
-[HttpGet("unapproved/customers")]
-public async Task<IActionResult> GetUnapprovedCustomers()
-{
-    try
-    {
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
+        [HttpGet("approved/customers")]
+        public async Task<IActionResult> GetApprovedCustomers()
         {
-            return Unauthorized("Token is required.");
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                // Get all approved customers
+                var approvedCustomers = await _mongoDBService.GetApprovedCustomersAsync();
+
+                return Ok(approvedCustomers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
+        //Get all unapproved customers
+        [HttpGet("unapproved/customers")]
+        public async Task<IActionResult> GetUnapprovedCustomers()
         {
-            return Unauthorized("Invalid token.");
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                // Get all unapproved customers
+                var unapprovedCustomers = await _mongoDBService.GetUnapprovedCustomersAsync();
+
+                return Ok(unapprovedCustomers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
-        // Get all unapproved customers
-        var unapprovedCustomers = await _mongoDBService.GetUnapprovedCustomersAsync();
-
-        return Ok(unapprovedCustomers);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Get all approved Customers by ID
-[HttpGet("approved/customers/{id}")]
-public async Task<IActionResult> GetApprovedCustomersById(string id)
-{
-    try
-    {
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
+        //Get all approved Customers by ID
+        [HttpGet("approved/customers/{id}")]
+        public async Task<IActionResult> GetApprovedCustomersById(string id)
         {
-            return Unauthorized("Token is required.");
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                // Get all approved customers by ID
+                var approvedCustomers = await _mongoDBService.GetApprovedCustomersByIdAsync(id);
+
+                return Ok(approvedCustomers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
+        //Deactivate Customer
+        [HttpPut("deactivate/{id}/{email}/{role}")]
+        public async Task<IActionResult> DeactivateCustomer(string id, string email, string role)
         {
-            return Unauthorized("Invalid token.");
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                //Validate for parameters
+                if (string.IsNullOrEmpty(id))
+                {
+                    return BadRequest("Please provide the customer ID.");
+                }
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
+
+
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                //Validate CSR or Admin
+                dynamic existingAuthenticator = null;
+                if (role.ToLower() == "admin")
+                {
+                    existingAuthenticator = await _mongoDBService.GetAdminByEmailAsync(email);
+                }
+                else if (role.ToLower() == "csr")
+                {
+                    existingAuthenticator = await _mongoDBService.GetCSRByEmailAsync(email);
+                }
+
+                if (existingAuthenticator == null)
+                {
+                    return Unauthorized("You are not authorized to deactivate customers.");
+                }
+
+                // Get the customer by ID
+                Users existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound("A customer with the provided ID does not exist.");
+                }
+
+                // Check if the customer is already deactivated
+                if (!existingUser.ApprovalStatus)
+                {
+                    return Conflict("The customer is already deactivated.");
+                }
+
+                // Update the customer approval status
+                existingUser.Deactivated = true;
+                existingUser.DeactivatedBy = existingAuthenticator.Id;
+
+                // Save the updated user details 
+                await _mongoDBService.UpdateCustomer(id, existingUser);
+
+                return Ok(existingUser);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
-        // Get all approved customers by ID
-        var approvedCustomers = await _mongoDBService.GetApprovedCustomersByIdAsync(id);
-
-        return Ok(approvedCustomers);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Deactivate Customer
-[HttpPut("deactivate/{id}/{email}/{role}")]
-public async Task<IActionResult> DeactivateCustomer(string id, string email, string role)
-{
-    try
-    {
-        if (!ModelState.IsValid)
+        //Reactivate Customer
+        [HttpPut("reactivate/{id}/{email}/{role}")]
+        public async Task<IActionResult> ReactivateCustomer(string id, string email, string role)
         {
-            return BadRequest(ModelState);
-        }
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-        //Validate for parameters
-        if (string.IsNullOrEmpty(id))
-        {
-            return BadRequest("Please provide the customer ID.");
-        }
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
-        {
-            return Unauthorized("Token is required.");
-        }
-
-
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
-        }
-
-        //Validate CSR or Admin
-        dynamic existingAuthenticator = null;
-        if (role.ToLower() == "admin")
-        {
-            existingAuthenticator = await _mongoDBService.GetAdminByEmailAsync(email);
-        }
-        else if (role.ToLower() == "csr")
-        {
-            existingAuthenticator = await _mongoDBService.GetCSRByEmailAsync(email);
-        }
-
-        if (existingAuthenticator == null)
-        {
-            return Unauthorized("You are not authorized to deactivate customers.");
-        }
-
-        // Get the customer by ID
-        Users existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
-        if (existingUser == null)
-        {
-            return NotFound("A customer with the provided ID does not exist.");
-        }
-
-        // Check if the customer is already deactivated
-        if (!existingUser.ApprovalStatus)
-        {
-            return Conflict("The customer is already deactivated.");
-        }
-
-        // Update the customer approval status
-        existingUser.Deactivated = true;
-        existingUser.DeactivatedBy = existingAuthenticator.Id;
-
-        // Save the updated user details 
-        await _mongoDBService.UpdateCustomer(id, existingUser);
-
-        return Ok(existingUser);
-
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Reactivate Customer
-[HttpPut("reactivate/{id}/{email}/{role}")]
-public async Task<IActionResult> ReactivateCustomer(string id, string email, string role)
-{
-    try
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        //Validate for parameters
-        if (string.IsNullOrEmpty(id))
-        {
-            return BadRequest("Please provide the customer ID.");
-        }
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
-        {
-            return Unauthorized("Token is required.");
-        }
+                //Validate for parameters
+                if (string.IsNullOrEmpty(id))
+                {
+                    return BadRequest("Please provide the customer ID.");
+                }
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
 
 
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
 
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
-        }
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
 
-        //Validate CSR or Admin
-        dynamic existingAuthenticator = null;
-        if (role.ToLower() == "admin")
-        {
-            existingAuthenticator = await _mongoDBService.GetAdminByEmailAsync(email);
-        }
-        else if (role.ToLower() == "csr")
-        {
-            existingAuthenticator = await _mongoDBService.GetCSRByEmailAsync(email);
-        }
+                //Validate CSR or Admin
+                dynamic existingAuthenticator = null;
+                if (role.ToLower() == "admin")
+                {
+                    existingAuthenticator = await _mongoDBService.GetAdminByEmailAsync(email);
+                }
+                else if (role.ToLower() == "csr")
+                {
+                    existingAuthenticator = await _mongoDBService.GetCSRByEmailAsync(email);
+                }
 
-        if (existingAuthenticator == null)
-        {
-            return Unauthorized("You are not authorized to deactivate customers.");
-        }
+                if (existingAuthenticator == null)
+                {
+                    return Unauthorized("You are not authorized to deactivate customers.");
+                }
 
-        // Get the customer by ID
-        Users existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
-        if (existingUser == null)
-        {
-            return NotFound("A customer with the provided ID does not exist.");
-        }
+                // Get the customer by ID
+                Users existingUser = await _mongoDBService.GetCustomerByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound("A customer with the provided ID does not exist.");
+                }
 
-        // Check if the customer is already deactivated
-        if (!existingUser.ApprovalStatus)
-        {
-            return Conflict("The customer is already deactivated.");
-        }
+                // Check if the customer is already deactivated
+                if (!existingUser.ApprovalStatus)
+                {
+                    return Conflict("The customer is already deactivated.");
+                }
 
-        // Update the customer approval status
-        existingUser.Deactivated = false;
-        existingUser.ReactivatedBy = existingAuthenticator.Id;
+                // Update the customer approval status
+                existingUser.Deactivated = false;
+                existingUser.ReactivatedBy = existingAuthenticator.Id;
 
-        // Save the updated user details 
-        await _mongoDBService.UpdateCustomer(id, existingUser);
+                // Save the updated user details 
+                await _mongoDBService.UpdateCustomer(id, existingUser);
 
-        return Ok(existingUser);
+                return Ok(existingUser);
 
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-// Get all deactivated customers
-[HttpGet("deactivated/customers")]
-public async Task<IActionResult> GetDeactivatedCustomers()
-{
-    try
-    {
-        //validate token
-        var token = Request.Headers["Authorization"];
-        if (token.Count == 0)
-        {
-            return Unauthorized("Token is required.");
-        }
-
-        var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
-
-        if (user == null)
-        {
-            return Unauthorized("Invalid token.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
         }
 
         // Get all deactivated customers
-        var deactivatedCustomers = await _mongoDBService.GetDeactivatedCustomersAsync();
+        [HttpGet("deactivated/customers")]
+        public async Task<IActionResult> GetDeactivatedCustomers()
+        {
+            try
+            {
+                //validate token
+                var token = Request.Headers["Authorization"];
+                if (token.Count == 0)
+                {
+                    return Unauthorized("Token is required.");
+                }
 
-        return Ok(deactivatedCustomers);
+                var user = JWTService.ValidateToken(token, _jwtSettings.SecurityKey);
 
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+                if (user == null)
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                // Get all deactivated customers
+                var deactivatedCustomers = await _mongoDBService.GetDeactivatedCustomersAsync();
+
+                return Ok(deactivatedCustomers);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
+        }
+
+        //Generate OTP for password reset
+        [HttpPost("generateOTP/{email}/{role}")]
+        public async Task<IActionResult> GenerateOTP(string email, string role)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Check if the user exists
+                dynamic existingUser = null;
+
+                // Centralized user retrieval based on role
+                switch (role.ToLower())
+                {
+                    case "admin":
+                        existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
+                        break;
+                    case "csr":
+                        existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
+                        break;
+                    case "vendor":
+                        existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
+                        break;
+                    case "customer":
+                        existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
+                        break;
+                    default:
+                        return BadRequest("Invalid role provided.");
+                }
+
+                if (existingUser == null)
+                {
+                    return NotFound("A user with the provided email does not exist.");
+                }
+
+                // Send OTP to the user
+                await _otpService.SendOTPAsync(email);
+
+                return Ok("An OTP has been sent to your email.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
+        }
+
+        //Validate OTP for password reset
+        [HttpPost("validateOTP/{email}/{role}")]
+        public async Task<IActionResult> ValidateOTP(string email, string role, [FromBody] OTPDto otp)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Check if the user exists
+                dynamic existingUser = null;
+
+                //Validate OTP
+                if (string.IsNullOrEmpty(otp.Code))
+                {
+                    return BadRequest("Please provide the OTP code.");
+                }
+
+                // Centralized user retrieval based on role
+                switch (role.ToLower())
+                {
+                    case "admin":
+                        existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
+                        break;
+                    case "csr":
+                        existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
+                        break;
+                    case "vendor":
+                        existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
+                        break;
+                    case "customer":
+                        existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
+                        break;
+                    default:
+                        return BadRequest("Invalid role provided.");
+                }
+
+                if (existingUser == null)
+                {
+                    return NotFound("A user with the provided email does not exist.");
+                }
+
+                // Validate the OTP
+                bool isOTPValid = _otpService.ValidateOTP(email, otp.Code);
+                if (!isOTPValid)
+                {
+                    return Unauthorized("The provided OTP is incorrect.");
+                }
+
+                return Ok("The OTP is valid.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
+        }
+
+        //Reset Password
+        [HttpPut("resetPassword/{email}/{role}")]
+        public async Task<IActionResult> ResetPassword(string email, string role, [FromBody] ResetPasswordDto resetPassword)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Check if the user exists
+                dynamic existingUser = null;
+
+                //Validate password
+                if (string.IsNullOrEmpty(resetPassword.Password))
+                {
+                    return BadRequest("Please provide the new password.");
+                }
+                //Validate OTP
+                if (string.IsNullOrEmpty(resetPassword.Code))
+                {
+                    return BadRequest("Please provide the OTP code.");
+                }
+
+                // Validate the OTP
+                bool isOTPValid = _otpService.ValidateOTPOnReset(email, resetPassword.Code);
+                if (!isOTPValid)
+                {
+                    return Unauthorized("The provided OTP is incorrect.");
+                }
+
+
+                // Centralized user retrieval based on role
+                switch (role.ToLower())
+                {
+                    case "admin":
+                        existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
+                        break;
+                    case "csr":
+                        existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
+                        break;
+                    case "vendor":
+                        existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
+                        break;
+                    case "customer":
+                        existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
+                        break;
+                    default:
+                        return BadRequest("Invalid role provided.");
+                }
+
+                if (existingUser == null)
+                {
+                    return NotFound("A user with the provided email does not exist.");
+                }
+
+                // Hash the new password
+                string hashedPassword = _passwordService.HashPassword(resetPassword.Password);
+
+                // Update the user password
+                existingUser.Password = hashedPassword;
+
+                var userId = existingUser.Id;
+
+                // Save the updated user details
+                await _mongoDBService.UpdateUserPasswordAsync(userId, hashedPassword, role);
+
+                return Ok("Password reset successful.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal server error occurred: {ex.Message}");
+            }
+
+        }
+      
+
     }
 }
 
-//Generate OTP for password reset
-[HttpPost("generateOTP/{email}/{role}")]
-public async Task<IActionResult> GenerateOTP(string email, string role)
-{
-    try
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
 
-        // Check if the user exists
-        dynamic existingUser = null;
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-            case "admin":
-                existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
-                break;
-            case "csr":
-                existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
-                break;
-            case "vendor":
-                existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
-                break;
-            case "customer":
-                existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
-                break;
-            default:
-                return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUser == null)
-        {
-            return NotFound("A user with the provided email does not exist.");
-        }
-
-        // Send OTP to the user
-        await _otpService.SendOTPAsync(email);
-
-        return Ok("An OTP has been sent to your email.");
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Validate OTP for password reset
-[HttpPost("validateOTP/{email}/{role}")]
-public async Task<IActionResult> ValidateOTP(string email, string role, [FromBody] OTPDto otp)
-{
-    try
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        // Check if the user exists
-        dynamic existingUser = null;
-
-        //Validate OTP
-        if (string.IsNullOrEmpty(otp.Code))
-        {
-            return BadRequest("Please provide the OTP code.");
-        }
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-            case "admin":
-                existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
-                break;
-            case "csr":
-                existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
-                break;
-            case "vendor":
-                existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
-                break;
-            case "customer":
-                existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
-                break;
-            default:
-                return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUser == null)
-        {
-            return NotFound("A user with the provided email does not exist.");
-        }
-
-        // Validate the OTP
-        bool isOTPValid = _otpService.ValidateOTP(email, otp.Code);
-        if (!isOTPValid)
-        {
-            return Unauthorized("The provided OTP is incorrect.");
-        }
-
-        return Ok("The OTP is valid.");
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-}
-
-//Reset Password
-[HttpPut("resetPassword/{email}/{role}")]
-public async Task<IActionResult> ResetPassword(string email, string role, [FromBody] ResetPasswordDto resetPassword)
-{
-    try
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        // Check if the user exists
-        dynamic existingUser = null;
-
-        //Validate password
-        if (string.IsNullOrEmpty(resetPassword.Password))
-        {
-            return BadRequest("Please provide the new password.");
-        }
-        //Validate OTP
-        if (string.IsNullOrEmpty(resetPassword.Code))
-        {
-            return BadRequest("Please provide the OTP code.");
-        }
-
-        // Validate the OTP
-        bool isOTPValid = _otpService.ValidateOTPOnReset(email, resetPassword.Code);
-        if (!isOTPValid)
-        {
-            return Unauthorized("The provided OTP is incorrect.");
-        }
-
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-            case "admin":
-                existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
-                break;
-            case "csr":
-                existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
-                break;
-            case "vendor":
-                existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
-                break;
-            case "customer":
-                existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
-                break;
-            default:
-                return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUser == null)
-        {
-            return NotFound("A user with the provided email does not exist.");
-        }
-
-        // Hash the new password
-        string hashedPassword = _passwordService.HashPassword(resetPassword.Password);
-
-        // Update the user password
-        existingUser.Password = hashedPassword;
-
-        var userId = existingUser.Id;
-
-        // Save the updated user details
-        await _mongoDBService.UpdateUserPasswordAsync(userId, hashedPassword, role);
-
-        return Ok("Password reset successful.");
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-    }
-
-}
-
-        // Send OTP to the user
-        await _otpService.SendOTPAsync(email);
-
-        return Ok("An OTP has been sent to your email.");
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-      }
-    }
-
-    //Validate OTP for password reset
-    [HttpPost("validateOTP/{email}/{role}")]
-    public async Task<IActionResult> ValidateOTP(string email, string role, [FromBody] OTPDto otp)
-    {
-      try
-      {
-        if (!ModelState.IsValid)
-        {
-          return BadRequest(ModelState);
-        }
-
-        // Check if the user exists
-        dynamic existingUser = null;
-
-        //Validate OTP
-        if (string.IsNullOrEmpty(otp.Code))
-        {
-          return BadRequest("Please provide the OTP code.");
-        }
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-          case "admin":
-            existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
-            break;
-          case "csr":
-            existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
-            break;
-          case "vendor":
-            existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
-            break;
-          case "customer":
-            existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
-            break;
-          default:
-            return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUser == null)
-        {
-          return NotFound("A user with the provided email does not exist.");
-        }
-
-        // Validate the OTP
-        bool isOTPValid = _otpService.ValidateOTP(email, otp.Code);
-        if (!isOTPValid)
-        {
-          return Unauthorized("The provided OTP is incorrect.");
-        }
-
-        return Ok("The OTP is valid.");
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-      }
-    }
-
-    //Reset Password
-    [HttpPut("resetPassword/{email}/{role}")]
-    public async Task<IActionResult> ResetPassword(string email, string role, [FromBody] ResetPasswordDto resetPassword)
-    {
-      try
-      {
-        if (!ModelState.IsValid)
-        {
-          return BadRequest(ModelState);
-        }
-
-        // Check if the user exists
-        dynamic existingUser = null;
-
-        //Validate password
-        if (string.IsNullOrEmpty(resetPassword.Password))
-        {
-          return BadRequest("Please provide the new password.");
-        }
-        //Validate OTP
-        if (string.IsNullOrEmpty(resetPassword.Code))
-        {
-          return BadRequest("Please provide the OTP code.");
-        }
-
-        // Validate the OTP
-        bool isOTPValid = _otpService.ValidateOTPOnReset(email, resetPassword.Code);
-        if (!isOTPValid)
-        {
-          return Unauthorized("The provided OTP is incorrect.");
-        }
-
-
-        // Centralized user retrieval based on role
-        switch (role.ToLower())
-        {
-          case "admin":
-            existingUser = await _mongoDBService.GetAdminByEmailAsync(email);
-            break;
-          case "csr":
-            existingUser = await _mongoDBService.GetCSRByEmailAsync(email);
-            break;
-          case "vendor":
-            existingUser = await _mongoDBService.GetVendorByEmailAsync(email);
-            break;
-          case "customer":
-            existingUser = await _mongoDBService.GetCustomerByEmailAsync(email);
-            break;
-          default:
-            return BadRequest("Invalid role provided.");
-        }
-
-        if (existingUser == null)
-        {
-          return NotFound("A user with the provided email does not exist.");
-        }
-
-        // Hash the new password
-        string hashedPassword = _passwordService.HashPassword(resetPassword.Password);
-
-        // Update the user password
-        existingUser.Password = hashedPassword;
-
-        var userId = existingUser.Id;
-
-        // Save the updated user details
-        await _mongoDBService.UpdateUserPasswordAsync(userId, hashedPassword, role);
-
-        return Ok("Password reset successful.");
-      }
-      catch (Exception ex)
-      {
-        return StatusCode(500, $"An internal server error occurred: {ex.Message}");
-      }
-
-    }
-
-  }
-}
