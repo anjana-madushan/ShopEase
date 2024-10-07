@@ -20,6 +20,14 @@ const Login = () => {
                             <div className="mb-3">
                                 <input type="password" className="form-control" placeholder="password" />
                             </div>
+                            <div className="mb-3">
+                            <select className="form-select" defaultValue="">
+                                <option value="" disabled>Select your role</option>
+                                <option value="vendor">Vendor</option>
+                                <option value="admin">Admin</option>
+                                <option value="csr">CSR</option>
+                            </select>
+                        </div>
                             <div className="d-flex justify-content-between align-items-center">
                                 <div className="form-check">
                                     <input type="checkbox" className="form-check-input" id="rememberMe" />
