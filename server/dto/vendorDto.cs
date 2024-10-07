@@ -8,6 +8,4 @@ public class VendorDTO
   public string Email { get; set; }
 
   public string Password { get; set; }
-
-  // public List<ProductDTO> ProductsCreated { get; set; } = new List<ProductDTO>();
 }
