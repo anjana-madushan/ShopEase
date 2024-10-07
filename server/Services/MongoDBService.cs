@@ -183,26 +183,31 @@ namespace server.Services
 
     //Get admin by ID
     public async Task<Admin?> GetAdminByIdAsync(string id) =>
-        await _adminCollection.Find(x => x.Id == id)
-        .Project<Admin>(Builders<Admin>.Projection
-        .Exclude(admin => admin.Password))
-        .FirstOrDefaultAsync();
+        await _adminCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+        
 
     //Get admin by email
     public async Task<Admin?> GetAdminByEmailAsync(string email) =>
         await _adminCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
 
-    // Update admin by ID
-    public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
-    {
-      var filter = Builders<Admin>.Filter.Eq(a => a.Id, adminId);
-      var updateResult = await _adminCollection.ReplaceOneAsync(filter, updatedAdmin);
+    // Update admin by ID (username, email, password)
+public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
+{
+    var filter = Builders<Admin>.Filter.Eq(a => a.Id, adminId);
 
-      if (updateResult.MatchedCount == 0)
-      {
+    var update = Builders<Admin>.Update
+        .Set(a => a.Username, updatedAdmin.Username)
+        .Set(a => a.Email, updatedAdmin.Email)
+        .Set(a => a.Password, updatedAdmin.Password);
+
+    var updateResult = await _adminCollection.UpdateOneAsync(filter, update);
+
+    if (updateResult.MatchedCount == 0)
+    {
         throw new Exception($"Admin with ID {adminId} not found.");
-      }
     }
+}
+
 
     // Update CSR by ID
     public async Task UpdateCSRByIDAsync(string csrId, CSR updatedCSR)
@@ -334,24 +339,16 @@ namespace server.Services
 
     // Get CSR by ID
     public async Task<CSR?> GetCSRByIdAsync(string id) =>
-      await _csrCollection.Find(x => x.Id == id)
-      .Project<CSR>(Builders<CSR>.Projection
-      .Exclude(csr => csr.Password))
-      .FirstOrDefaultAsync();
+      await _csrCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
     // Get Vendor by ID
     public async Task<Vendor?> GetVendorByIdAsync(string id) =>
-      await _vendorCollection.Find(x => x.Id == id)
-      .Project<Vendor>(Builders<Vendor>.Projection
-      .Exclude(vendor => vendor.Password))
-      .FirstOrDefaultAsync();
+      await _vendorCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
     // Get Customer by ID
     public async Task<Users?> GetCustomerByIdAsync(string id) =>
-      await _customerCollection.Find(x => x.Id == id)
-      .Project<Users>(Builders<Users>.Projection
-      .Exclude(customer => customer.Password))
-      .FirstOrDefaultAsync();
+      await _customerCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
     //Get all Vendors
     public async Task<List<Vendor>> GetVendorsAsync()
     {
