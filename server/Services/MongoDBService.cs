@@ -168,7 +168,10 @@ namespace server.Services
 
     //Get admin by ID
     public async Task<Admin?> GetAdminByIdAsync(string id) =>
-        await _adminCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+        await _adminCollection.Find(x => x.Id == id)
+        .Project<Admin>(Builders<Admin>.Projection
+        .Exclude(admin => admin.Password))
+        .FirstOrDefaultAsync();
 
     //Get admin by email
     public async Task<Admin?> GetAdminByEmailAsync(string email) =>
@@ -229,7 +232,10 @@ namespace server.Services
 
     //Get CSR by Email
     public async Task<CSR?> GetCSRByEmailAsync(string email) =>
-        await _csrCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+        await _csrCollection.Find(x => x.Email == email)
+        .Project<CSR>(Builders<CSR>.Projection
+        .Exclude(csr => csr.Password))
+        .FirstOrDefaultAsync();
 
 
     //Create a new CSR
@@ -241,7 +247,10 @@ namespace server.Services
 
     //Get vendor by email
     public async Task<Vendor?> GetVendorByEmailAsync(string email) =>
-        await _vendorCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+        await _vendorCollection.Find(x => x.Email == email)
+        .Project<Vendor>(Builders<Vendor>.Projection
+        .Exclude(vendor => vendor.Password))
+        .FirstOrDefaultAsync();
 
     //Create a new Vendor
     public async Task<Vendor> CreateVendorAsync(Vendor vendor)
@@ -259,7 +268,10 @@ namespace server.Services
 
     //Get customer by email
     public async Task<Users?> GetCustomerByEmailAsync(string email) =>
-        await _customerCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+        await _customerCollection.Find(x => x.Email == email)
+        .Project<Users>(Builders<Users>.Projection
+        .Exclude(customer => customer.Password))
+        .FirstOrDefaultAsync();
 
 
     // Update User by ID based on role
@@ -315,22 +327,30 @@ namespace server.Services
 
     // Get CSR by ID
     public async Task<CSR?> GetCSRByIdAsync(string id) =>
-        await _csrCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+      await _csrCollection.Find(x => x.Id == id)
+      .Project<CSR>(Builders<CSR>.Projection
+      .Exclude(csr => csr.Password))
+      .FirstOrDefaultAsync();
 
     // Get Vendor by ID
     public async Task<Vendor?> GetVendorByIdAsync(string id) =>
-        await _vendorCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+      await _vendorCollection.Find(x => x.Id == id)
+      .Project<Vendor>(Builders<Vendor>.Projection
+      .Exclude(vendor => vendor.Password))
+      .FirstOrDefaultAsync();
 
     // Get Customer by ID
     public async Task<Users?> GetCustomerByIdAsync(string id) =>
-        await _customerCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
-
+      await _customerCollection.Find(x => x.Id == id)
+      .Project<Users>(Builders<Users>.Projection
+      .Exclude(customer => customer.Password))
+      .FirstOrDefaultAsync();
     //Get all Vendors
     public async Task<List<Vendor>> GetVendorsAsync()
     {
       var vendors = await _vendorCollection.Find(new BsonDocument())
           .Project<Vendor>(Builders<Vendor>.Projection
-          .Exclude(vendor => vendor.Password)) 
+          .Exclude(vendor => vendor.Password))
           .ToListAsync();
 
       return vendors;
@@ -341,7 +361,7 @@ namespace server.Services
     {
       var customers = await _customerCollection.Find(new BsonDocument())
           .Project<Users>(Builders<Users>.Projection
-          .Exclude(customer => customer.Password)) 
+          .Exclude(customer => customer.Password))
           .ToListAsync();
 
       return customers;
@@ -352,22 +372,22 @@ namespace server.Services
     {
       var csrs = await _csrCollection.Find(new BsonDocument())
           .Project<CSR>(Builders<CSR>.Projection
-          .Exclude(csr => csr.Password)) 
+          .Exclude(csr => csr.Password))
           .ToListAsync();
 
       return csrs;
     }
 
     //Get all Admins
-public async Task<List<Admin>> GetAllAdminsAsync()
-{
-    var admins = await _adminCollection.Find(new BsonDocument())
-        .Project<Admin>(Builders<Admin>.Projection
-        .Exclude(admin => admin.Password)) 
-        .ToListAsync();
+    public async Task<List<Admin>> GetAllAdminsAsync()
+    {
+      var admins = await _adminCollection.Find(new BsonDocument())
+          .Project<Admin>(Builders<Admin>.Projection
+          .Exclude(admin => admin.Password))
+          .ToListAsync();
 
-    return admins;
-}
+      return admins;
+    }
 
     //Update Customer 
     public async Task UpdateCustomer(string customerId, Users updatedCustomer)
@@ -396,19 +416,28 @@ public async Task<List<Admin>> GetAllAdminsAsync()
     //Get all approved customers
     public async Task<List<Users>> GetApprovedCustomersAsync()
     {
-      return await _customerCollection.Find(x => x.ApprovalStatus == true).ToListAsync();
-    }
+      return await _customerCollection.Find(x => x.ApprovalStatus == true)
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password))
+          .ToListAsync();
 
+    }
     //Get all unapproved customers
     public async Task<List<Users>> GetUnapprovedCustomersAsync()
     {
-      return await _customerCollection.Find(x => x.ApprovalStatus == false).ToListAsync();
+      return await _customerCollection.Find(x => x.ApprovalStatus == false)
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password))
+          .ToListAsync();
     }
 
     //Get all approved customers by ID based on Approved By
     public async Task<List<Users>> GetApprovedCustomersByIdAsync(string adminId)
     {
-      return await _customerCollection.Find(x => x.ApprovedBy == adminId).ToListAsync();
+      return await _customerCollection.Find(x => x.ApprovedBy == adminId && x.ApprovalStatus == true)
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password))
+          .ToListAsync();
     }
 
     //Get All deactivated customers

@@ -64,15 +64,26 @@ namespace MongoExample.Controllers
                 return BadRequest("At least one product is required.");
             }
 
-            //Check if the product exists
+            // Check each product and update the stock
             foreach (var product in orderDTO.Products)
             {
                 var productDetail = await _mongoDBService.GetProductAsync(product.Key);
                 if (productDetail == null || productDetail.Id != product.Key)
                 {
-                    return NotFound("Product not found or product ID does not match.");
+                    return NotFound($"Product not found.");
                 }
+
+                // Check if there is enough quantity
+                if (productDetail.StockLevel < product.Value.Quantity)
+                {
+                    return BadRequest($"Insufficient stock for product {productDetail.ProductName}. Available: {productDetail.StockLevel}, Requested: {product.Value.Quantity}");
+                }
+
+                // Deduct the ordered quantity from the available stock
+                int updatedQuantity = productDetail.StockLevel - product.Value.Quantity;
+                await _mongoDBService.DeductAvailableStock(product.Key, updatedQuantity);
             }
+
 
             //Create a random unique 4 digit order ID not in the database
             Random random = new Random();
