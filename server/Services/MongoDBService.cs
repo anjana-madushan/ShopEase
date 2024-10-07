@@ -31,7 +31,6 @@ namespace server.Services
         // Initialize the collections
         _productCollection = database.GetCollection<Product>(mongoDBConfigs.Value.MongoProductCollection);
         _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoCommentCollection);
-        // _petCollection = database.GetCollection<Pet>(mongoDBConfigs.Value.MongoPetCollection);
         _adminCollection = database.GetCollection<Admin>(mongoDBConfigs.Value.MongoAdminCollection);
         _orderCollection = database.GetCollection<Order>(mongoDBConfigs.Value.MongoOrderCollection);
         _notificationCollection = database.GetCollection<Notification>(mongoDBConfigs.Value.MongoNotificationCollection);
