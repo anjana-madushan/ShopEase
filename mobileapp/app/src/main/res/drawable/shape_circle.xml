@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/primary"/> <!-- Red color -->
+    <corners android:radius="100dp"/> <!-- Making the shape a circle -->
+    <size android:width="200dp" android:height="200dp"/> <!-- Diameter of the circle -->
+</shape>
