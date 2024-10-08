@@ -24,7 +24,7 @@ export default function Home() {
 
   // Function to render the content based on selected key/subkey
   const renderContent = () => {
-    if (selectedKey === "dashboard" && !selectedSubKey) {
+    if (selectedKey === "dashboard" && selectedSubKey === "vendor") {
       return (
         <>
           <Products />

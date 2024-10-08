@@ -24,7 +24,13 @@ export default function NotificationModal({ show, handleClose }) {
       try {
         const response = await getNotificationsBasedOnVendor(token);
         console.log("API Response:", response);
-        setNotificationData(response); // Store the notifications array in state
+
+        if (Array.isArray(response.data)) {
+          setNotificationData(response.data);
+        } else if (typeof response.data === "string") {
+          setNotificationData([]);
+          setError(response.data);
+        }
       } catch (error) {
         console.error("Error fetching notifications:", error.response || error);
         setError("Failed to fetch notifications");

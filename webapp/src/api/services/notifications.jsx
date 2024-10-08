@@ -9,7 +9,7 @@ export const getNotificationsBasedOnVendor = async (token) => {
       },
     });
     console.log(response)
-    return response.data;
+    return response;
   } catch (error) {
     console.log(error);
     return error.response.data;
