@@ -5,7 +5,7 @@ import ProductModel from "./productModal";
 import { getAllProducts, createProduct, deleteProductByID,getAllProductsAdmin } from "../../api/services/productService";
 import ProductViewModal from "./ViewProduct";
 import ViewProductModal from "./ViewProductModel";
-
+import '../../styles/table.css'; 
 export default function Products() {
   const [productData, setProductData] = useState([]);
   const [loading, setLoading] = useState(true);

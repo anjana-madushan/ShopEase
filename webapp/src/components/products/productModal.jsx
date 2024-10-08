@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
+
 export default function ProductModel({ show, handleClose, handleAddUser }) {
   const [formData, setFormData] = useState({
     productName: "",
