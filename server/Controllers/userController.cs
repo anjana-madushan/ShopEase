@@ -18,7 +18,7 @@ namespace MongoExample.Controllers
         private readonly EmailService _emailService;
         private readonly OTPService _otpService;
 
-        // Ensure this is the only constructor
+        // Constructor
         public UserController(MongoDBService mongoDBService, IOptions<JwtSettings> jwtSettings, PasswordService passwordService, OTPService otpService, EmailService emailService)
         {
             _mongoDBService = mongoDBService;
@@ -37,6 +37,21 @@ namespace MongoExample.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                if (string.IsNullOrEmpty(login.Email))
+                {
+                    return BadRequest("Email cannot be null or empty.");
+                }
+
+                if (string.IsNullOrEmpty(login.Password))
+                {
+                    return BadRequest("Password cannot be null or empty.");
+                }
+
+                if (string.IsNullOrEmpty(login.Role))
+                {
+                    return BadRequest("Role cannot be null or empty.");
                 }
 
                 // Declare the variable for existing user
@@ -59,30 +74,45 @@ namespace MongoExample.Controllers
                 {
                     existingUser = await _mongoDBService.GetCustomerByEmailAsync(login.Email);
                 }
+                else
+                {
+                    return BadRequest("Invalid role provided.");
+                }
 
                 if (existingUser == null)
                 {
                     return NotFound("A user with the provided email does not exist.");
                 }
 
+                Console.WriteLine("existingUser: " + existingUser.Password);
+
                 // Validate the entered password with the stored hashed password
                 bool isPasswordValid = _passwordService.VerifyPassword(login.Password, existingUser.Password);
+
                 if (!isPasswordValid)
                 {
                     return Unauthorized("The provided password is incorrect.");
                 }
 
+                var userResponse = new
+                {
+                    Id = existingUser.Id,
+                    Username = existingUser.Username,
+                    Email = existingUser.Email,
+                    Role = login.Role.ToLower()
+                };
 
                 // Generate a JWT token and expire in 24 hours
                 var token = JWTService.GenerateToken(existingUser, _jwtSettings.SecurityKey, 1440);
 
-                return Ok(new { admin = existingUser, token = token });
+                return Ok(new { user = userResponse, token = token });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An internal server error occurred: {ex.Message}");
             }
         }
+
 
         //Signup for new customer
         [HttpPost("signup")]
@@ -117,7 +147,16 @@ namespace MongoExample.Controllers
                 // Save the user to the database
                 await _mongoDBService.CreateCustomerAsync(newUser);
 
-                return Ok(newUser);
+                //Response
+                var userResponse = new
+                {
+                    Id = newUser.Id,
+                    Username = newUser.Username,
+                    Email = newUser.Email,
+                    Role = "customer"
+                };
+
+                return Ok(userResponse);
             }
             catch (Exception ex)
             {
@@ -126,7 +165,7 @@ namespace MongoExample.Controllers
         }
 
         // Update user details
-        [HttpPut("update/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateDTO updatedUser)
         {
             try
@@ -181,41 +220,55 @@ namespace MongoExample.Controllers
 
                 if (existingUser == null)
                 {
-                    return NotFound("A user with the provided email does not exist.");
+                    return NotFound("A user with the provided id does not exist.");
                 }
 
-                // Hash the password
-                string hashedPassword = "";
-
-                if (!string.IsNullOrEmpty(updatedUser.Password))
-                {
-                    hashedPassword = _passwordService.HashPassword(updatedUser.Password);
-                }
-
-                // Check if the user is updating the username, email, or password
-                if (updatedUser.Username == null && updatedUser.Email == null && updatedUser.Password == null)
-                {
-                    return BadRequest("Please provide the details you would like to update.");
-                }
-
-                // Update the user details
                 if (!string.IsNullOrEmpty(updatedUser.Username))
                 {
                     existingUser.Username = updatedUser.Username;
                 }
+                else
+                {
+                    existingUser.Username = existingUser.Username;
+                }
+
+
                 if (!string.IsNullOrEmpty(updatedUser.Email))
                 {
                     existingUser.Email = updatedUser.Email;
                 }
-                if (!string.IsNullOrEmpty(updatedUser.Password))
+                else
                 {
-                    existingUser.Password = hashedPassword;
+                    existingUser.Email = existingUser.Email;
                 }
 
-                // Save the updated user details to the database
-                await _mongoDBService.UpdateUserAsync(id, updatedUser.Role, existingUser);
+                if (!string.IsNullOrEmpty(updatedUser.Password))
+                {
+                    existingUser.Password = _passwordService.HashPassword(updatedUser.Password);
+                }
+                else
+                {
+                    existingUser.Password = existingUser.Password;
+                }
 
-                return Ok(existingUser);
+
+                if (string.IsNullOrEmpty(updatedUser.Username) && string.IsNullOrEmpty(updatedUser.Email) && string.IsNullOrEmpty(updatedUser.Password) && string.IsNullOrEmpty(updatedUser.Role))
+                {
+                    return BadRequest("Please provide the details to update.");
+                }
+
+                //Response
+                var userResponse = new
+                {
+                    Id = existingUser.Id,
+                    Username = existingUser.Username,
+                    Email = existingUser.Email,
+                    Role = updatedUser.Role.ToLower()
+                };
+
+                await _mongoDBService.UpdateUserAsync(id, updatedUser.Role.ToLower(), existingUser);
+
+                return Ok(userResponse);
             }
             catch (Exception ex)
             {
@@ -228,9 +281,7 @@ namespace MongoExample.Controllers
         public async Task<IActionResult> GetAllUsers(string role)
         {
             try
-            {
-
-                //Validate token
+            {        //Validate token
                 var token = Request.Headers["Authorization"];
                 if (token.Count == 0)
                 {
@@ -264,6 +315,12 @@ namespace MongoExample.Controllers
                     default:
                         return BadRequest("Invalid role provided.");
                 }
+
+                if (existingUsers == null)
+                {
+                    return NotFound("No users found.");
+                }
+
 
                 return Ok(existingUsers);
             }
@@ -737,6 +794,7 @@ namespace MongoExample.Controllers
                 var deactivatedCustomers = await _mongoDBService.GetDeactivatedCustomersAsync();
 
                 return Ok(deactivatedCustomers);
+
             }
             catch (Exception ex)
             {
@@ -928,7 +986,9 @@ namespace MongoExample.Controllers
             }
 
         }
+      
 
     }
 }
+
 
