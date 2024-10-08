@@ -109,7 +109,7 @@ public class RegisterActivity extends AppCompatActivity {
     jsonBody.put("email", email);
     jsonBody.put("password", password);
 
-    networkHelper.post(this, ApiEndPoints.REGISTER, jsonBody, new NetworkCallback() {
+    networkHelper.post(this, ApiEndPoints.REGISTER, jsonBody, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
         System.out.println(response);

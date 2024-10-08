@@ -16,8 +16,8 @@ import java.util.Map;
 public class UserRepo {
   final NetworkHelper networkHelper = NetworkHelper.getInstance();
 
-  public void sendOtp(Context context, String email, NetworkCallback callback) {
-    networkHelper.post(context, ApiEndPoints.SEND_OTP + email + "/customer", null, new NetworkCallback() {
+  public void sendOtp(Context context, String email, NetworkCallback<String> callback) {
+    networkHelper.post(context, ApiEndPoints.SEND_OTP + email + "/customer", null, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
         callback.onSuccess("success");
@@ -30,12 +30,12 @@ public class UserRepo {
     });
   }
 
-  public void updateUser(Context context, String email, String username, NetworkCallback callback) {
+  public void updateUser(Context context, String email, String username, NetworkCallback<String> callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
     User user = User.fromJson(sharedPreferencesHelper.getString(PrefKeys.USER, ""));
 
 
-    networkHelper.put(context, ApiEndPoints.UPDATE_USER + user.getId(), null, new NetworkCallback() {
+    networkHelper.put(context, ApiEndPoints.UPDATE_USER + user.getId(), null, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
         callback.onSuccess("success");
@@ -48,11 +48,11 @@ public class UserRepo {
     });
   }
 
-  public void validateOtp(Context context, String email, String otp, NetworkCallback callback) {
+  public void validateOtp(Context context, String email, String otp, NetworkCallback<String> callback) {
     final Map<String, String> jsonBody = new HashMap<>();
     jsonBody.put("Code", otp);
 
-    networkHelper.post(context, ApiEndPoints.VALIDATE_OTP + email + "/customer", jsonBody, new NetworkCallback() {
+    networkHelper.post(context, ApiEndPoints.VALIDATE_OTP + email + "/customer", jsonBody, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
         System.out.println(response);

@@ -30,4 +30,9 @@
     <string name="logout">Logout</string>
     <string name="settings_button">Settings Button</string>
     <string name="forgot_password">Forgot Password?</string>
+    <string name="category">Category</string>
+    <string name="product_name">Product Name</string>
+    <string name="product_description">Product Description</string>
+    <string name="in_stock">In Stock</string>
+    <string name="price">Price</string>
 </resources>

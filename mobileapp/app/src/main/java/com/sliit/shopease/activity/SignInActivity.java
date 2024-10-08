@@ -123,7 +123,7 @@ public class SignInActivity extends AppCompatActivity {
     jsonBody.put("role", "customer");
 
 
-    networkHelper.post(this, ApiEndPoints.LOGIN, jsonBody, new NetworkCallback() {
+    networkHelper.post(this, ApiEndPoints.LOGIN, jsonBody, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
         System.out.println(response);

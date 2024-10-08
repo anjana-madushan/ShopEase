@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.sliit.shopease.constants.PrefKeys;
 import com.sliit.shopease.interfaces.NetworkCallback;
 import com.sliit.shopease.models.ShopEaseError;
+import com.sliit.shopease.models.User;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -48,15 +49,20 @@ public class NetworkHelper {
   }
 
   // Perform GET Request
-  public void get(Context context, String url, NetworkCallback callback) {
+  public void get(Context context, String url, boolean includeToken, NetworkCallback<String> callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
     String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
+    User user = User.fromJson(sharedPreferencesHelper.getString(PrefKeys.USER, ""));
+    final String token = user.getToken();
 
-    Request request = new Request.Builder()
-        .url(baseUrl + url)
-        .build();
+    Request.Builder request = new Request.Builder();
+    request.url(baseUrl + url);
 
-    client.newCall(request).enqueue(new Callback() {
+    if(includeToken) {
+      request.header("Authorization", token);
+    }
+
+    client.newCall(request.build()).enqueue(new Callback() {
       @Override
       public void onFailure(@NonNull Call call, @NonNull IOException e) {
         callback.onFailure(new ShopEaseError(e));

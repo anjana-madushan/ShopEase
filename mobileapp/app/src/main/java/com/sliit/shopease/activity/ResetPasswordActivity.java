@@ -69,7 +69,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
     DialogHelper.showLoading(this, "Sending OTP...");
 
-    userRepo.sendOtp(this, email, new NetworkCallback() {
+    userRepo.sendOtp(this, email, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
         System.out.println("Reset password:" + response);

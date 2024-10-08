@@ -76,7 +76,7 @@ public class UpdatePasswordActivity extends AppCompatActivity {
       return;
     }
 
-    userRepo.updatePassword(this, password, new NetworkCallback() {
+    userRepo.updatePassword(this, password, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
 

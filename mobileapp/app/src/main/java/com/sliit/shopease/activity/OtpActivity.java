@@ -155,7 +155,7 @@ public class OtpActivity extends AppCompatActivity {
 
     DialogHelper.showLoading(this, "Validating OTP...");
 
-    userRepo.validateOtp(this, email, otp, new NetworkCallback() {
+    userRepo.validateOtp(this, email, otp, new NetworkCallback<String>() {
       @Override
       public void onSuccess(String response) {
         DialogHelper.hideLoading();
