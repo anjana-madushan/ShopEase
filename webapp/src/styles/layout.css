@@ -1,7 +1,11 @@
 .layout-container {
     width: 100%;
-    padding: 10px; 
+    padding: 10px;
     background-color: rgb(255, 255, 255);
+    height: 100vh; /* Takes the full height of the viewport */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Hides any overflow outside the container */
 }
 
 .title-bar {
@@ -11,6 +15,7 @@
     padding: 10px 0;
     width: 100%;
     position: relative;
+    flex-shrink: 0; /* Prevents the title bar from shrinking */
 }
 
 .title {
@@ -75,11 +80,13 @@
     color: #888;
 }
 
+/* Make body section scrollable */
 .body {
     padding-top: 20px;
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
+    flex-grow: 1; /* Allow the body to grow and take remaining space */
     gap: 10px;
-   
+    overflow-y: auto; /* Enable vertical scrolling */
+    background-color: #f9f9f9; /* Optional background for the scrollable content */
 }

@@ -96,7 +96,7 @@ const Login = () => {
               className="btn btn-primary btn-block mt-4"
               // disabled={loading}
             >
-              {/* {loading ? "Signing In..." : "Sign In"} */}
+              Sign In
             </button>
             {/* {error && <p className="text-danger mt-3">{error}</p>} */}
           </form>

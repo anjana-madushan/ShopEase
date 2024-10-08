@@ -1,10 +1,10 @@
 import  { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { createVender, getAllVendors } from '../../../api/services/authService';
+import { createCsr, getAllCsrs } from "../../../api/services/authService";
 import UserModel from "../UserModel";
 
-export default function VenderList() {
-  const [vendorData, setVendorData] = useState([]);
+export default function CsrList() {
+  const [csrData, setCsrData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -16,10 +16,10 @@ export default function VenderList() {
   useEffect(() => {
     try {
       if (token) {
-        getAllVendors(token)
+        getAllCsrs(token)
           .then((response) => {
             console.log("API Response:", response.data); // Log the API response
-            setVendorData(response); // Store the array of admin objects in state
+            setCsrData(response); // Store the array of admin objects in state
             setLoading(false); 
             //console.log("Admin Data:", adminData);
           })
@@ -44,7 +44,7 @@ export default function VenderList() {
     }
   }, [token]);
 
-  const handleAddVendor = async (newCsr) => {
+  const handleAddCsr = async (newCsr) => {
     if (!token) {
       setError("No token found. Please log in.");
       return;
@@ -52,11 +52,11 @@ export default function VenderList() {
     try {
       setError(null);
       setSuccess(null);
-      const response = await createVender(newCsr.username, newCsr.password, newCsr.email, token);
+      const response = await createCsr(newCsr.username, newCsr.password, newCsr.email, token);
 
       if (response.newCsr) {
         setSuccess("Admin added successfully!"); 
-        setVendorData((prevData) => [...prevData, response.newCsr]);
+        setCsrData((prevData) => [...prevData, response.newCsr]);
       } else {
         console.error("Failed to add admin: No new admin in response");
         setError("Failed to add admin: Unexpected API response");
@@ -69,6 +69,7 @@ export default function VenderList() {
 
   const handleCloseModal = () => setShowModal(false);
   const handleShowModal = () => setShowModal(true);
+
   // Render loading message while data is being fetched
   if (loading) {
     return <p>Loading...</p>;
@@ -85,7 +86,7 @@ export default function VenderList() {
     <div className="container">
         <div style={{paddingBottom: "20px"}}>
         <button
-              onClick={handleShowModal}
+               onClick={handleShowModal}
               className="btn btn-primary btn-block mt-4"
               style={{padding: "10px 20px", width: "100px", fontSize: "16px", fontWeight: "bold"}}>
              Add
@@ -103,12 +104,12 @@ export default function VenderList() {
             </tr>
           </thead>
           <tbody>
-            {vendorData?.length > 0 ? (
-              vendorData.map((vendor) => (
-                <tr key={vendor.id}>
-                  <td>{vendor.id}</td>
-                  <td>{vendor.username}</td>
-                  <td>{vendor.email}</td>
+            {csrData?.length > 0 ? (
+              csrData.map((csr) => (
+                <tr key={csr.id}>
+                  <td>{csr.id}</td>
+                  <td>{csr.username}</td>
+                  <td>{csr.email}</td>
                   <td><button  className="btn btn-primary btn-sm">Details</button></td>
                 </tr>
               ))
@@ -123,9 +124,8 @@ export default function VenderList() {
       <UserModel
         show={showModal}
         handleClose={handleCloseModal}
-        handleAddUser={handleAddVendor}
+        handleAddUser={handleAddCsr}
       />
     </div>
   );
 }
-

@@ -1,7 +1,6 @@
-/* eslint-disable react/prop-types */
 import "../styles/layout.css";
 import profile from "../assets/images/profile.jpg";
-import { FaBell } from "react-icons/fa"; // Importing a notification bell icon from react-icons
+import { FaBell } from "react-icons/fa"; 
 import { useSelector } from "react-redux";
 
 export default function Layout({ children, title }) {

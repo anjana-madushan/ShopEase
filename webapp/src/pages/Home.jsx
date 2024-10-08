@@ -2,15 +2,13 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import { navKeys } from '../utils/navkeys';
 import Layout from '../components/Layout';
-import AddForm from '../components/products/AddForm';
 import TableComponent from '../components/products/ProductTable';
-import AdminForm from '../components/users/admin/AdminForm';
 import AdminTable from '../components/users/admin/AdminTable';
-
-
+import CsrList from '../components/users/csr/CsrList';
+import VenderList from '../components/users/vendor/venderList';
 export default function Home() {
-  const [selectedKey, setSelectedKey] = React.useState(navKeys[0].key); // Main page
-  const [selectedSubKey, setSelectedSubKey] = React.useState(null); // Subpage (optional)
+  const [selectedKey, setSelectedKey] = React.useState(navKeys[0].key); 
+  const [selectedSubKey, setSelectedSubKey] = React.useState(null); 
 
   // Handle when a main key is selected
   const handleSelectedKey = (key) => {
@@ -25,31 +23,10 @@ export default function Home() {
 
   // Function to render the content based on selected key/subkey
   const renderContent = () => {
-    // Example: Multiple components for the "dashboard" page
     if (selectedKey === "dashboard" && !selectedSubKey) {
       return (
         <>
         <TableComponent/>
-        </>
-      );
-    }
-
-    // Example: Multiple components for the "dashboard" > "milestones" subpage
-    // if (selectedKey === "dashboard" && selectedSubKey === "milestones") {
-    //   return (
-    //     <>
-    //        <AddForm />
-         
-    //       <div>Milestones Related Content</div>
-    //     </>
-    //   );
-    // }
-
-    // Example: Multiple components for the "components" > "fabrics" subpage
-    if (selectedKey === "components" && selectedSubKey === "fabrics") {
-      return (
-        <>
-          <div>Fabrics Content</div>
         </>
       );
     }
@@ -60,23 +37,44 @@ export default function Home() {
           </>
         );
       }
-    if (selectedKey === "vendors" && selectedSubKey === "addvenders") {
+    if (selectedKey === "users" && selectedSubKey === "csr") {
         return (
           <>
-            <AdminForm/>
+          <CsrList/>
           </>
         );
       }
-    // Example: Multiple components for the "libraries" > "sizes" subpage
-    if (selectedKey === "libraries" && selectedSubKey === "sizes") {
-      return (
-        <>
-          <div>Sizes Content</div>
-        </>
-      );
-    }
+      if (selectedKey === "orders" && !selectedSubKey) {
+        return (
+          <>
 
-    // Default content for other pages
+          </>
+        );
+      }
+      if (selectedKey === "products" && !selectedSubKey) {
+        return (
+          <>
+
+          </>
+        );
+      }
+     
+    if (selectedKey === "venders" && !selectedSubKey) {
+        return (
+          <>
+           <VenderList/>
+          </>
+        );
+      }
+      if (selectedKey === "inventory" && !selectedSubKey) {
+        return (
+          <>
+          
+          </>
+        );
+      }
+
+
     return <div>{selectedKey.charAt(0).toUpperCase() + selectedKey.slice(1)} Content</div>;
   };
 
