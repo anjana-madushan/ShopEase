@@ -25,7 +25,6 @@ import com.sliit.shopease.helpers.DialogHelper;
 import com.sliit.shopease.helpers.SharedPreferencesHelper;
 import com.sliit.shopease.interfaces.NetworkCallback;
 import com.sliit.shopease.models.Category;
-import com.sliit.shopease.models.DemoProduct;
 import com.sliit.shopease.models.Product;
 import com.sliit.shopease.models.ShopEaseError;
 import com.sliit.shopease.repository.ProductsRepository;
@@ -40,8 +39,6 @@ public class MainActivity extends AppCompatActivity {
   RecyclerView rv_products;
   ImageButton btn_profile;
 
-  ArrayList<Category> categoryData;
-  ArrayList<DemoProduct> demoProductData;
   LinearLayoutManager h_linearLayoutManager;
   LinearLayoutManager v_linearLayoutManager;
   RvCategoriesAdapter rvCategoriesAdapter;
@@ -66,30 +63,30 @@ public class MainActivity extends AppCompatActivity {
 
     btn_profile.setOnClickListener(v -> goToProfile());
 
-    categoryData = new ArrayList<>();
-    demoProductData = new ArrayList<>();
-    initiateDemoData();
-
     h_linearLayoutManager = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false);
-    rvCategoriesAdapter = new RvCategoriesAdapter(categoryData);
-    rv_categories.setLayoutManager(h_linearLayoutManager);
-    rv_categories.setAdapter(rvCategoriesAdapter);
-
     v_linearLayoutManager = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.VERTICAL, false);
 
     loadData();
   }
 
+  private void checkUIReady() {
+    if (rv_categories != null && rv_products != null && btn_profile != null) {
+      DialogHelper.hideLoading();
+    }
+  }
+
   private void loadData() {
     DialogHelper.showLoading(MainActivity.this, "Please wait...");
+
     productsRepository.getAllProducts(MainActivity.this, new NetworkCallback<ArrayList<Product>>() {
       @Override
       public void onSuccess(ArrayList<Product> response) {
-        rvProductsAdapter = new RvProductsAdapter(response);
-        rv_products.setLayoutManager(v_linearLayoutManager);
-        rv_products.setAdapter(rvProductsAdapter);
-        DialogHelper.hideLoading();
-        runOnUiThread(() -> DialogHelper.showAlert(MainActivity.this, "Success", "Data loaded successfully"));
+        runOnUiThread(() -> {
+          rvProductsAdapter = new RvProductsAdapter(response);
+          rv_products.setLayoutManager(v_linearLayoutManager);
+          rv_products.setAdapter(rvProductsAdapter);
+        });
+        checkUIReady();
       }
 
       @Override
@@ -98,27 +95,24 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(() -> DialogHelper.showAlert(MainActivity.this, "Error", error.getMessage()));
       }
     });
-  }
 
-  private void initiateDemoData() {
-    categoryData.add(new Category("1", "Category 1", "https://picsum.photos/200/300"));
-    categoryData.add(new Category("2", "Category 2", "https://picsum.photos/200/100"));
-    categoryData.add(new Category("3", "Category 3", "https://picsum.photos/100/300"));
-    categoryData.add(new Category("4", "Category 4", "https://picsum.photos/220/300"));
-    categoryData.add(new Category("5", "Category 5", "https://picsum.photos/230/300"));
-    categoryData.add(new Category("6", "Category 6", "https://picsum.photos/240/300"));
-    categoryData.add(new Category("7", "Category 7", "https://picsum.photos/250/300"));
+    productsRepository.getAllCategories(MainActivity.this, new NetworkCallback<ArrayList<Category>>() {
+      @Override
+      public void onSuccess(ArrayList<Category> response) {
+        runOnUiThread(() -> {
+          rvCategoriesAdapter = new RvCategoriesAdapter(response);
+          rv_categories.setLayoutManager(h_linearLayoutManager);
+          rv_categories.setAdapter(rvCategoriesAdapter);
+        });
+        checkUIReady();
+      }
 
-//    demoProductData.add(new DemoProduct("1", "Product 1", "random description", "https://picsum.photos/300/300", 1000.00));
-//    demoProductData.add(new DemoProduct("2", "Product 2", "random description", "https://picsum.photos/400/300", 200));
-//    demoProductData.add(new DemoProduct("3", "Product 3", "random description", "https://picsum.photos/500/300", 150));
-//    demoProductData.add(new DemoProduct("4", "Product 4", "random description", "https://picsum.photos/600/300", 1000));
-//    demoProductData.add(new DemoProduct("5", "Product 5", "random description", "https://picsum.photos/700/300", 10));
-//    demoProductData.add(new DemoProduct("6", "Product 6", "random description", "https://picsum.photos/800/300", 500));
-//    demoProductData.add(new DemoProduct("7", "Product 7", "random description", "https://picsum.photos/900/300", 560));
-//    demoProductData.add(new DemoProduct("8", "Product 8", "random description", "https://picsum.photos/000/300", 9000));
-//    demoProductData.add(new DemoProduct("9", "Product 9", "random description", "https://picsum.photos/250/300", 50));
-//    demoProductData.add(new DemoProduct("0", "Product 10", "random description", "https://picsum.photos/250/300", 300));
+      @Override
+      public void onFailure(ShopEaseError error) {
+        DialogHelper.hideLoading();
+        runOnUiThread(() -> DialogHelper.showAlert(MainActivity.this, "Error", error.getMessage()));
+      }
+    });
   }
 
   private void goToProfile() {
@@ -159,7 +153,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBindViewHolder(@NonNull RvCategoryHolder holder, int position) {
       holder.txt_categoryName.setText(data.get(position).getName());
-      Glide.with(MainActivity.this).load(data.get(position).getImageUrl()).into(holder.img_categoryImage);
+
+      if (data.get(position).getImageUrl() != null) {
+        Glide.with(MainActivity.this).load(data.get(position).getImageUrl()).into(holder.img_categoryImage);
+      } else {
+        holder.img_categoryImage.setImageResource(R.drawable.category_placeholder);
+      }
     }
 
     class RvCategoryHolder extends RecyclerView.ViewHolder {
@@ -199,9 +198,9 @@ public class MainActivity extends AppCompatActivity {
       holder.rec_txt_item_stock.setText(String.valueOf(data.get(position).getStockLevel()));
 
       final String imageUrl = data.get(position).getImageUrl();
-      if(imageUrl != null) {
+      if (imageUrl != null) {
         Glide.with(MainActivity.this).load(imageUrl).into(holder.img_productImage);
-      }else{
+      } else {
         holder.img_productImage.setImageResource(R.drawable.product_placeholder);
       }
     }

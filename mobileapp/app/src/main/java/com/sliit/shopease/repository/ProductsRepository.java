@@ -5,6 +5,7 @@ import android.content.Context;
 import com.sliit.shopease.constants.ApiEndPoints;
 import com.sliit.shopease.helpers.NetworkHelper;
 import com.sliit.shopease.interfaces.NetworkCallback;
+import com.sliit.shopease.models.Category;
 import com.sliit.shopease.models.Product;
 import com.sliit.shopease.models.ShopEaseError;
 
@@ -14,7 +15,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class ProductsRepository {
-  private NetworkHelper networkHelper = NetworkHelper.getInstance();
+  private final NetworkHelper networkHelper = NetworkHelper.getInstance();
 
   public void getAllProducts(Context context, NetworkCallback<ArrayList<Product>> callback) {
     networkHelper.get(context, ApiEndPoints.ALL_PRODUCTS, true, new NetworkCallback<String>() {
@@ -41,7 +42,37 @@ public class ProductsRepository {
 
       @Override
       public void onFailure(ShopEaseError error) {
+        callback.onFailure(error);
+      }
+    });
+  }
 
+  public void getAllCategories(Context context, NetworkCallback<ArrayList<Category>> callback) {
+    networkHelper.get(context, ApiEndPoints.ALL_CATEGORIES, true, new NetworkCallback<String>() {
+      @Override
+      public void onSuccess(String response) {
+        System.out.println(response);
+
+        try {
+          JSONArray items = new JSONArray(response);
+          ArrayList<Category> categories = new ArrayList<>();
+
+          for (int i = 0; i < items.length(); i++) {
+            String item = items.getString(i);
+            Category product = Category.fromString(item);
+            categories.add(product);
+          }
+
+          callback.onSuccess(categories);
+        } catch (Exception e) {
+          e.printStackTrace();
+          callback.onFailure(new ShopEaseError(e));
+        }
+      }
+
+      @Override
+      public void onFailure(ShopEaseError error) {
+        callback.onFailure(error);
       }
     });
   }
