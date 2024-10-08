@@ -77,4 +77,20 @@ public class ProductsRepository {
     });
   }
 
+  public void getProduct(Context context, String id, NetworkCallback<Product> callback) {
+    networkHelper.get(context, ApiEndPoints.PRODUCT + id, true, new NetworkCallback<String>() {
+      @Override
+      public void onSuccess(String response) {
+        System.out.println(response);
+
+        final Product product = Product.fromJson(response);
+        callback.onSuccess(product);
+      }
+
+      @Override
+      public void onFailure(ShopEaseError error) {
+        callback.onFailure(error);
+      }
+    });
+  }
 }

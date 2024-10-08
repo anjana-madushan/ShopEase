@@ -8,4 +8,5 @@ public class ApiEndPoints {
   public static String VALIDATE_OTP = "/api/user/validateOTP/";
   public static String ALL_PRODUCTS = "/api/Product/customer";
   public static String ALL_CATEGORIES = "/api/Product/getCategories";
+  public static String PRODUCT = "/api/Product/";
 }

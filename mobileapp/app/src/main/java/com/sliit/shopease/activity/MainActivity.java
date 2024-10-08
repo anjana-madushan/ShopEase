@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -52,8 +53,18 @@ public class MainActivity extends AppCompatActivity {
     EdgeToEdge.enable(this);
     setContentView(R.layout.activity_main);
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-      Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-      v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+      Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+      // Apply system bar insets (status and navigation bar)
+      v.setPadding(systemBarsInsets.left, systemBarsInsets.top, systemBarsInsets.right, 0);
+
+      // Handle the keyboard (IME) inset
+      Insets imeInsetsType = insets.getInsets(WindowInsetsCompat.Type.ime());
+      if (insets.isVisible(WindowInsetsCompat.Type.ime())) {
+        // Keyboard is visible, add padding to avoid overlapping
+        v.setPadding(systemBarsInsets.left, systemBarsInsets.top, systemBarsInsets.right, imeInsetsType.bottom);
+      }
+
       return insets;
     });
 
@@ -197,6 +208,12 @@ public class MainActivity extends AppCompatActivity {
       holder.rec_txt_item_category.setText(data.get(position).getCategory());
       holder.rec_txt_item_stock.setText(String.valueOf(data.get(position).getStockLevel()));
 
+      holder.rec_item.setOnClickListener(v -> {
+        Intent intent = new Intent(MainActivity.this, ProductActivity.class);
+        intent.putExtra("productId", data.get(position).getId());
+        startActivity(intent);
+      });
+
       final String imageUrl = data.get(position).getImageUrl();
       if (imageUrl != null) {
         Glide.with(MainActivity.this).load(imageUrl).into(holder.img_productImage);
@@ -217,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
       private final TextView txt_price;
       private final TextView rec_txt_item_category;
       private final TextView rec_txt_item_stock;
+      private final CardView rec_item;
 
 
       public RvProductHolder(@NonNull View itemView) {
@@ -228,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
         txt_price = itemView.findViewById(R.id.rec_txt_item_price);
         rec_txt_item_category = itemView.findViewById(R.id.rec_txt_item_category);
         rec_txt_item_stock = itemView.findViewById(R.id.rec_txt_item_stock);
+        rec_item = itemView.findViewById(R.id.rec_item);
       }
     }
 
