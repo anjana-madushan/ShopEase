@@ -4,6 +4,7 @@ import { navKeys } from '../utils/navkeys';
 import Layout from '../components/Layout';
 import AddForm from '../components/products/AddForm';
 import TableComponent from '../components/products/ProductTable';
+import AdminForm from '../components/users/admin/AdminForm';
 import AdminTable from '../components/users/admin/AdminTable';
 
 
@@ -28,7 +29,7 @@ export default function Home() {
     if (selectedKey === "dashboard" && !selectedSubKey) {
       return (
         <>
-        <TableComponent />
+        <TableComponent/>
         </>
       );
     }
@@ -55,14 +56,14 @@ export default function Home() {
     if (selectedKey === "users" && selectedSubKey === "admins") {
         return (
           <>
-           <AdminTable/>
+          <AdminTable/>
           </>
         );
       }
     if (selectedKey === "vendors" && selectedSubKey === "addvenders") {
         return (
           <>
-           
+            <AdminForm/>
           </>
         );
       }
