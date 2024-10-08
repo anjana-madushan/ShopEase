@@ -177,6 +177,10 @@ public class OtpActivity extends AppCompatActivity {
   }
 
   private void goToUpdatePassword() {
-    startActivity(new Intent(this, UpdatePasswordActivity.class));
+    // add email to intent and go to update password activity
+    Intent intent = new Intent(this, UpdatePasswordActivity.class);
+    intent.putExtra("email", email);
+    startActivity(intent);
+    finish();
   }
 }

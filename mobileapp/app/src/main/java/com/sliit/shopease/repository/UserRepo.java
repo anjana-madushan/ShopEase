@@ -66,4 +66,8 @@ public class UserRepo {
       }
     });
   }
+
+  public void updatePassword(Context context, String password, NetworkCallback callback) {
+
+  }
 }
