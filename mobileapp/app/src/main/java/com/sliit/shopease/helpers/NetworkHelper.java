@@ -1,5 +1,7 @@
 package com.sliit.shopease.helpers;
 
+import static android.webkit.URLUtil.isValidUrl;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -10,6 +12,7 @@ import com.sliit.shopease.interfaces.NetworkCallback;
 import com.sliit.shopease.models.ShopEaseError;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -80,6 +83,12 @@ public class NetworkHelper {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
     String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
+    // Validate the URL
+    if (!isValidUrl(baseUrl + url)) {
+      callback.onFailure(new ShopEaseError(new URISyntaxException(baseUrl + url, "invalid Url")));
+      return;
+    }
+
     String jsonString = new Gson().toJson(jsonBody);
     RequestBody body = RequestBody.create(jsonString, JSON);
     Request request = new Request.Builder()
@@ -87,26 +96,32 @@ public class NetworkHelper {
         .post(body)
         .build();
 
-    client.newCall(request).enqueue(new Callback() {
-      @Override
-      public void onFailure(@NonNull Call call, @NonNull IOException e) {
-        callback.onFailure(new ShopEaseError(e));
-      }
+    try {
+      client.newCall(request).enqueue(new Callback() {
+        @Override
+        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+          e.printStackTrace();
+          callback.onFailure(new ShopEaseError(e));
+        }
 
-      @Override
-      public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-        if (!response.isSuccessful()) {
-          callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
-        } else {
-          ResponseBody responseData = response.body();
-          if (responseData != null) {
-            callback.onSuccess(responseData.string());
+        @Override
+        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+          if (!response.isSuccessful()) {
+            callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
           } else {
-            callback.onFailure(new ShopEaseError());
+            ResponseBody responseData = response.body();
+            if (responseData != null) {
+              callback.onSuccess(responseData.string());
+            } else {
+              callback.onFailure(new ShopEaseError());
+            }
           }
         }
-      }
-    });
+      });
+    } catch (Exception e) {
+      e.printStackTrace();
+      callback.onFailure(new ShopEaseError(e));
+    }
   }
 
   // Perform PUT Request

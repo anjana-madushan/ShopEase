@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,7 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.sliit.shopease.Config;
 import com.sliit.shopease.R;
 import com.sliit.shopease.constants.PrefKeys;
 import com.sliit.shopease.helpers.SharedPreferencesHelper;
@@ -31,6 +31,8 @@ import java.util.Collections;
 public class MainActivity extends AppCompatActivity {
   RecyclerView rv_categories;
   RecyclerView rv_products;
+  ImageButton btn_profile;
+
   ArrayList<Category> categoryData;
   ArrayList<Product> productData;
   LinearLayoutManager h_linearLayoutManager;
@@ -53,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
 
     rv_categories = findViewById(R.id.rv_categories);
     rv_products = findViewById(R.id.rv_items);
+    btn_profile = findViewById(R.id.btn_profile);
+
+    btn_profile.setOnClickListener(v -> goToProfile());
 
     categoryData = new ArrayList<>();
     categoryData.add(new Category("1", "Category 1", "https://picsum.photos/200/300"));
@@ -84,6 +89,11 @@ public class MainActivity extends AppCompatActivity {
     rvProductsAdapter = new RvProductsAdapter(productData);
     rv_products.setLayoutManager(v_linearLayoutManager);
     rv_products.setAdapter(rvProductsAdapter);
+  }
+
+  private void goToProfile() {
+    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+    startActivity(intent);
   }
 
   private void checkUser() {

@@ -36,10 +36,23 @@ public class ShopEaseError {
   }
 
   public String getMessage() {
+    if(exception != null){
+      String message = exception.getMessage();
+
+      //if exception is type timeout, give user friendly message
+      if(exception instanceof java.net.SocketTimeoutException){
+        message = "Connection timed out";
+      }
+
+      return message;
+    }
+
     String errorMsg = message;
 
     if(status == 409){
       errorMsg = "User already exists";
+    }else if(status == 404){
+      errorMsg = "User not found";
     }
     return errorMsg;
   }

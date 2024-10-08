@@ -11,7 +11,8 @@
 
     <EditText
         android:id="@+id/edt_search"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
+        app:layout_constraintEnd_toStartOf="@id/btn_profile"
         android:layout_height="50dp"
         android:autofillHints="search"
         android:background="@color/white"
@@ -24,6 +25,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:contentDescription="@string/profile_button"
+        android:layout_width="50dp"
+        android:id="@+id/btn_profile"
+        android:layout_height="50dp"
+        android:src="@drawable/icon_profile"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/background_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_categories"

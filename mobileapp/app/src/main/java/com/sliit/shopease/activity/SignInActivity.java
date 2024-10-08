@@ -105,8 +105,6 @@ public class SignInActivity extends AppCompatActivity {
       imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
     }
 
-    DialogHelper.showLoading(this, "Signing in...");
-
     String email = edt_email.getText().toString();
     String password = edt_pass.getText().toString();
 
@@ -114,6 +112,8 @@ public class SignInActivity extends AppCompatActivity {
       DialogHelper.showAlert(this, "Error", "Please enter both email and password");
       return;
     }
+
+    DialogHelper.showLoading(this, "Signing in...");
 
     final Map<String, String> jsonBody = new HashMap<>();
     jsonBody.put("email", email);
@@ -153,11 +153,16 @@ public class SignInActivity extends AppCompatActivity {
 
       @Override
       public void onFailure(ShopEaseError error) {
-        runOnUiThread(() -> {
-          System.out.println(error);
-          DialogHelper.hideLoading();
-          DialogHelper.showAlert(SignInActivity.this, "Error: ", error.getMessage());
-        });
+        System.out.println(error);
+        DialogHelper.hideLoading();
+
+        String message = error.getMessage();
+        if(error.getStatus() == 404){
+          message = "Invalid User Credentials";
+        }
+
+        String finalMessage = message;
+        runOnUiThread(() -> DialogHelper.showAlert(SignInActivity.this, "Error: ", finalMessage));
       }
     });
   }

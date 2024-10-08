@@ -27,4 +27,6 @@
     <string name="placeholder_text">Placeholder Text</string>
     <string name="ellipsis">…</string>
     <string name="enter_value">Enter value</string>
+    <string name="profile_button">Profile Button</string>
+    <string name="logout">Logout</string>
 </resources>
