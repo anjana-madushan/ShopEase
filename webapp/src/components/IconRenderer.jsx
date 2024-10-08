@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaHome, FaBell, FaChartBar, FaShoppingCart, FaUsers, FaCog } from 'react-icons/fa';
+import { FaHome, FaBell,FaBox, FaEye, FaShoppingCart, FaUsers, FaIndustry, FaBoxes} from 'react-icons/fa';
 
 const IconRenderer = ({ iconKey }) => {
   switch (iconKey) {
@@ -7,14 +7,18 @@ const IconRenderer = ({ iconKey }) => {
       return <FaHome />;
     case 'FaBell':
       return <FaBell />;
-    case 'FaChartBar':
-      return <FaChartBar />;
+    case 'FaEye':
+      return <FaEye />;
     case 'FaShoppingCart':
       return <FaShoppingCart />;
     case 'FaUsers':
       return <FaUsers />;
-    case 'FaCog':
-      return <FaCog />;
+    case 'FaIndustry':
+      return <FaIndustry />;
+    case 'FaBoxes':
+      return <FaBoxes />;
+    case 'FaBox':
+      return <FaBox />;
     default:
       return null;
   }
