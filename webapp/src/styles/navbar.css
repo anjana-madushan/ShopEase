@@ -1,0 +1,116 @@
+/* Base styles for the navbar container */
+.navbar-container {
+  width: 240px; /* Expanded width */
+  background-color: #424874;
+  min-height: 100vh; /* Full height */
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease; /* Smooth expand/collapse effect */
+  overflow: hidden; /* Hide overflow for smooth transitions */
+  position: relative;
+}
+
+.navbar-container.collapsed {
+  width: 60px; /* Collapsed width */
+}
+
+/* Collapse/Expand Icon Styling */
+.collapse-icon {
+  background-color: #A6B1E1;
+  color: #fff;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  align-self: flex-end;
+  transition: background-color 0.3s ease;
+}
+
+.collapse-icon:hover {
+  background-color: #949eca;
+}
+
+/* Center the logo vertically */
+.navbar-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%; /* Ensure the logo container takes full width */
+  height: 40px; /* Adjust as needed to make sure the logo stays centered vertically */
+}
+
+.logo-image {
+  width: 30px; /* Adjust the size of the logo as needed */
+  height: auto;
+  display: block;
+}
+
+
+/* Common style for each nav item */
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 5px 5px;
+  margin-bottom: 10px;
+  color: #F4EEFF;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-item .icon {
+  margin-right: 10px;
+  font-size: 1rem;
+}
+
+.nav-item .text {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar-container.collapsed .nav-item .text {
+  display: none; /* Hide text when collapsed */
+}
+
+.nav-item.selected {
+  background-color: #A6B1E1;
+}
+
+.nav-item:hover {
+  background-color: #949eca;
+}
+
+/* Styles for navbar title next to the logo */
+.navbar-title {
+  color: #F4EEFF;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+/* Styles for the sub-page container */
+.sub-page-container {
+  margin-left: 20px;
+  padding-left: 10px;
+  border-left: 2px solid #F4EEFF;
+}
+
+.sub-page-item {
+  color: #F4EEFF;
+  padding: 5px 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.sub-page-item:hover {
+  color: #A6B1E1;
+}
