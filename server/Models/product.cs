@@ -21,6 +21,8 @@ public class Product
 
   [Required(ErrorMessage = "Category is required")]
   public string Category { get; set; } = null!;
+  public string? Image { get; set; }
+  public bool IsCategoryActive { get; set; } = true;
 
   public string Description { get; set; } = null!;
 
