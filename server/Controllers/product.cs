@@ -52,7 +52,36 @@ public class ProductController : ControllerBase
       }
 
       var products = await _mongoDBService.GetProductsCustomerAsync();
+      if (products.Count == 0)
+      {
+        return NotFound(new { Message = "Nothing to show" });
+      }
       return Ok(products);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
+  [HttpGet("getCategories")]
+  public async Task<IActionResult> GetCategories()
+  {
+    try
+    {
+      var userId = await AuthorizeCustomerAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+
+      var categories = await _mongoDBService.GetDistinctCategoriesAsync();
+      if (categories.Count == 0)
+      {
+        return NotFound(new { Message = "Nothing to show" });
+      }
+
+      return Ok(categories);
     }
     catch (Exception error)
     {
@@ -72,6 +101,10 @@ public class ProductController : ControllerBase
       }
 
       var products = await _mongoDBService.GetProductsVenderAsync(userId);
+      if (products.Count == 0)
+      {
+        return NotFound(new { Message = "Nothing to show" });
+      }
       return Ok(products);
     }
     catch (Exception error)
@@ -140,7 +173,7 @@ public class ProductController : ControllerBase
       {
         return Unauthorized("Unauthorized user.");
       }
-      var products = await _mongoDBService.GetProductsAsync();
+      var products = await _mongoDBService.GetProductsCustomerAsync();
       if (products.Count == 0)
       {
         return NotFound(new { Message = "Products are not found" });
@@ -162,6 +195,43 @@ public class ProductController : ControllerBase
       var product = await _mongoDBService.GetProductAsync(id);
 
       if (product is null)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+
+      return Ok(product);
+
+    }
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Mongo DB error occurred while getting this product", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
+  }
+
+  [HttpGet("customer/{id:length(24)}")]
+  public async Task<ActionResult<Product>> GetProductCustomer(string id)
+  {
+    try
+    {
+      var userId = await AuthorizeCustomerAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+      var product = await _mongoDBService.GetProductAsync(id);
+
+      if (product is null)
+      {
+        return NotFound(new { Message = "Product not found" });
+      }
+
+      Console.WriteLine(product.IsActive);
+
+      if (!product.IsActive || !product.IsCategoryActive)
       {
         return NotFound(new { Message = "Product not found" });
       }
@@ -255,7 +325,7 @@ public class ProductController : ControllerBase
         Description = updatedProductDto.Description,
         IsActive = updatedProductDto.IsActive,
         StockLevel = updatedProductDto.StockLevel,
-        MinStockLevel = updatedProductDto.MinStockLevel
+        MinStockLevel = updatedProductDto.MinStockLevel,
       };
 
       await _mongoDBService.UpdateProductAsync(id, updatedProduct);
@@ -320,7 +390,7 @@ public class ProductController : ControllerBase
   {
     try
     {
-      var userId = await AuthorizeAdminAsync();
+      var userId = await AuthorizeVenderAsync();
       if (userId == null)
       {
         return Unauthorized("Unauthorized user.");
@@ -342,6 +412,43 @@ public class ProductController : ControllerBase
         return NotFound(new { Message = "Product not found" });
       }
       return Ok(new { Message = "Product Listing status updated successfully." });
+    }
+    catch (MongoException mongoerror)
+    {
+      return StatusCode(500, new { Message = "Mongo DB error occurred while updating the product listing status", Error = mongoerror.Message });
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred", Error = error.Message });
+    }
+  }
+
+  [HttpPatch("status/{category}")]
+  public async Task<IActionResult> ChangeCategoryStatus(string category, [FromBody] bool newStatus)
+  {
+    try
+    {
+      var userId = await AuthorizeAdminAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+      var products = await _mongoDBService.GetAllProductsBasedOnCategoryAsync(category);
+      if (products.Count == 0)
+      {
+        return NotFound(new { Message = "Products not found" });
+      }
+
+      var updateResult = await _mongoDBService.UpdateCategoryStatusAsync(category, newStatus);
+
+      // Check if any documents were updated
+      if (updateResult.ModifiedCount == 0)
+      {
+        return NotFound(new { Message = "No products were updated." });
+      }
+
+      return Ok(new { Message = "Category status updated successfully", updateResult.ModifiedCount });
+
     }
     catch (MongoException mongoerror)
     {
