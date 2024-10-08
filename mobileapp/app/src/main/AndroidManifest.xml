@@ -13,6 +13,12 @@
         android:theme="@style/Theme.ShopEase"
         tools:targetApi="31">
         <activity
+            android:name=".activity.ShoppingCartActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.ProductActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.MainActivity"
             android:exported="false" />
         <activity
@@ -44,7 +50,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>
