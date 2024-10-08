@@ -1,5 +1,7 @@
 package com.sliit.shopease.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
@@ -83,5 +85,11 @@ public class Product {
   public String toJson() {
     Gson gson = new Gson();
     return gson.toJson(this);
+  }
+
+  @NonNull
+  @Override
+  public String toString() {
+    return this.toJson();
   }
 }

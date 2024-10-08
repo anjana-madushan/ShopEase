@@ -158,9 +158,14 @@ public class SignInActivity extends AppCompatActivity {
         System.out.println(error);
         DialogHelper.hideLoading();
 
+
         String message = error.getMessage();
-        if(error.getStatus() == 404){
-          message = "Invalid User Credentials";
+
+        //If error is an exception, not needed to check statusCode
+        if (error.getException() == null) {
+          if (error.getStatus() == 404) {
+            message = "Invalid User Credentials";
+          }
         }
 
         String finalMessage = message;
@@ -180,7 +185,7 @@ public class SignInActivity extends AppCompatActivity {
     finish();
   }
 
-  void goToResetPassword(){
+  void goToResetPassword() {
     Intent intent = new Intent(this, ResetPasswordActivity.class);
     startActivity(intent);
   }

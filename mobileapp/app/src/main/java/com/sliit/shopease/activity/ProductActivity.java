@@ -11,9 +11,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
 import com.sliit.shopease.R;
 import com.sliit.shopease.helpers.DialogHelper;
 import com.sliit.shopease.interfaces.NetworkCallback;
+import com.sliit.shopease.models.Cart;
 import com.sliit.shopease.models.Product;
 import com.sliit.shopease.models.ShopEaseError;
 import com.sliit.shopease.repository.ProductsRepository;
@@ -21,12 +23,15 @@ import com.sliit.shopease.repository.ProductsRepository;
 public class ProductActivity extends AppCompatActivity {
   private final ProductsRepository productsRepository = new ProductsRepository();
 
+  private Cart cart;
+  private Product product;
   private TextView prod_txt_name;
   private TextView prod_txt_price;
   private TextView prod_txt_category;
   private TextView prod_txt_stock;
   private TextView prod_txt_description;
   private ImageView prod_img;
+  private Button btn_add_cart;
 
   private String productId;
 
@@ -43,9 +48,9 @@ public class ProductActivity extends AppCompatActivity {
 
     //get product id from intent
     productId = getIntent().getStringExtra("productId");
+    cart = new Cart(this);
 
-    Button btn_add_cart = findViewById(R.id.prod_btn_add_cart);
-
+    btn_add_cart = findViewById(R.id.prod_btn_add_cart);
     prod_txt_name = findViewById(R.id.prod_txt_name);
     prod_txt_price = findViewById(R.id.prod_txt_price);
     prod_txt_category = findViewById(R.id.prod_txt_category);
@@ -64,12 +69,22 @@ public class ProductActivity extends AppCompatActivity {
     productsRepository.getProduct(this, productId, new NetworkCallback<Product>() {
       @Override
       public void onSuccess(Product response) {
+        product = response;
+
         runOnUiThread(() -> {
           prod_txt_name.setText(response.getProductName());
           prod_txt_price.setText(response.getPriceString());
           prod_txt_category.setText(response.getCategory());
           prod_txt_stock.setText(getString(R.string.available, response.getStockLevel()));
           prod_txt_description.setText(response.getDescription());
+          btn_add_cart.setText(getString(R.string.add_to_cart, cart.getProductCount(response)));
+
+          final String imageUrl = response.getImageUrl();
+          if (imageUrl != null) {
+            Glide.with(ProductActivity.this).load(imageUrl).into(prod_img);
+          } else {
+            prod_img.setImageResource(R.drawable.product_placeholder);
+          }
         });
         DialogHelper.hideLoading();
       }
@@ -86,6 +101,7 @@ public class ProductActivity extends AppCompatActivity {
   }
 
   private void addToCart() {
-    //TODO: Add to cart
+    cart.addItem(product);
+    btn_add_cart.setText(getString(R.string.add_to_cart, cart.getProductCount(product)));
   }
 }

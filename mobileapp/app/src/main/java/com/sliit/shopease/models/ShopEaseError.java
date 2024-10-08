@@ -2,6 +2,9 @@ package com.sliit.shopease.models;
 
 import androidx.annotation.NonNull;
 
+import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
+
 import okhttp3.Response;
 
 public class ShopEaseError {
@@ -40,8 +43,10 @@ public class ShopEaseError {
       String message = exception.getMessage();
 
       //if exception is type timeout, give user friendly message
-      if(exception instanceof java.net.SocketTimeoutException){
+      if(exception instanceof SocketTimeoutException){
         message = "Connection timed out";
+      }else if(exception instanceof URISyntaxException){
+        message = "Please set Base URL";
       }
 
       return message;
@@ -59,5 +64,9 @@ public class ShopEaseError {
 
   public Response getResponse() {
     return response;
+  }
+
+  public Exception getException(){
+    return exception;
   }
 }

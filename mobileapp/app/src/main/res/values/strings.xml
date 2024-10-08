@@ -35,6 +35,7 @@
     <string name="product_description">Product Description</string>
     <string name="in_stock">In Stock</string>
     <string name="price">Price</string>
-    <string name="add_to_cart">Add to Cart</string>
+    <string name="add_to_cart">Add to Cart (%1$d)</string>
     <string name="available">Available: %1$d</string>
+    <string name="shopping_cart">Shopping Cart</string>
 </resources>

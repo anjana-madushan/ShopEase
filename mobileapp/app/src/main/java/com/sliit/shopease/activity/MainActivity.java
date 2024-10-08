@@ -47,9 +47,12 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    checkUser();
-
     super.onCreate(savedInstanceState);
+
+    if(!isUserLoggedIn()){
+      return;
+    }
+
     EdgeToEdge.enable(this);
     setContentView(R.layout.activity_main);
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -131,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     startActivity(intent);
   }
 
-  private void checkUser() {
+  private boolean isUserLoggedIn() {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(MainActivity.this);
     String token = sharedPreferencesHelper.getString(PrefKeys.USER, "");
 
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
       startActivity(intent);
       finish();
     }
+    return !token.isEmpty();
   }
 
   public class RvCategoriesAdapter extends RecyclerView.Adapter<RvCategoriesAdapter.RvCategoryHolder> {
