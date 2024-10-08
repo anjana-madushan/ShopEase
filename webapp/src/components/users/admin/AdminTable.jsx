@@ -1,6 +1,6 @@
 import  { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { getAllUsers,createAdmin } from "../../../api/services/authService";
+import { getAllUsers,createUser } from "../../../api/services/authService";
 import UserModel from "../UserModel";
 
 export default function AdminTable() {
@@ -53,7 +53,7 @@ export default function AdminTable() {
     try {
       setError(null);
       setSuccess(null);
-      const response = await createAdmin(newAdmin.username, newAdmin.password, newAdmin.email, token);
+      const response = await createUser(newAdmin.username, newAdmin.password, newAdmin.email, token , "admin");
 
       if (response.newAdmin) {
         setSuccess("Admin added successfully!"); 

@@ -1,6 +1,6 @@
 import  { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { createCsr, getAllCsrs } from "../../../api/services/authService";
+import { createCsr, getAllUsers } from "../../../api/services/authService";
 import UserModel from "../UserModel";
 
 export default function CsrList() {
@@ -16,7 +16,7 @@ export default function CsrList() {
   useEffect(() => {
     try {
       if (token) {
-        getAllCsrs(token)
+        getAllUsers(token , "csr")
           .then((response) => {
             console.log("API Response:", response.data); // Log the API response
             setCsrData(response); // Store the array of admin objects in state

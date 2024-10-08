@@ -1,6 +1,6 @@
 import  { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { createVender, getAllVendors } from '../../../api/services/authService';
+import { createVender, getAllUsers } from '../../../api/services/authService';
 import UserModel from "../UserModel";
 
 export default function VenderList() {
@@ -16,7 +16,7 @@ export default function VenderList() {
   useEffect(() => {
     try {
       if (token) {
-        getAllVendors(token)
+        getAllUsers(token , "vendor")
           .then((response) => {
             console.log("API Response:", response.data); // Log the API response
             setVendorData(response); // Store the array of admin objects in state

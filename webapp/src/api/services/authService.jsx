@@ -31,52 +31,9 @@ export const getAllUsers = async (token, role) => {
   }
 };
 
-export const getAllAdmins = async (token) => {
+export const createUser = async (username, password, email, token , role) => {
   try {
-    //console.log("Tokenapi:", token);
-    const response = await apiClient.get(`/api/user/all/admin`, {
-      headers: {
-        Authorization: `${token}`,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return error.response.data;
-  }
-};
-export const getAllCsrs = async (token) => {
-  try {
-    //console.log("Tokenapi:", token);
-    const response = await apiClient.get(`/api/user/all/csr`, {
-      headers: {
-        Authorization: `${token}`,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return error.response.data;
-  }
-};
-export const getAllVendors = async (token) => {
-  try {
-    //console.log("Tokenapi:", token);
-    const response = await apiClient.get(`/api/user/all/vendor`, {
-      headers: {
-        Authorization: `${token}`,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return error.response.data;
-  }
-};
-
-export const createAdmin = async (username, password, email, token) => {
-  try {
-    const response = await apiClient.post(`/api/admin/create/admin`, 
+    const response = await apiClient.post(`/api/admin/create/${role}`, 
       {
         username,
         password,
@@ -128,6 +85,64 @@ export const createVender = async (username, password, email, token) => {
         },
       }
     );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+}
+
+export const getApprovedCus = async (token) => {
+  try {
+    //console.log("Tokenapi:", token);
+    const response = await apiClient.get(`/api/user/approved/customers`, {
+      headers: {
+        Authorization: `${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+};
+
+export const getUnapprovedCus = async (token) => {
+  try {
+    //console.log("Tokenapi:", token);
+    const response = await apiClient.get(`/api/user/unapproved/customers`, {
+      headers: {
+        Authorization: `${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+};
+
+export const getUserById = async (id, token) => {
+  try {
+    const response = await apiClient.get(`api/user/admin/${id}`, {
+      headers: {
+        Authorization: `${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+}
+
+export const getUserByEmail = async (email, token) => {
+  try {
+    const response = await apiClient.get(`/api/user/admin/email/${email}`, {
+      headers: {
+        Authorization: `${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
     console.log(error);

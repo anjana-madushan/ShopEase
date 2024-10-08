@@ -15,6 +15,21 @@ export const getAllProducts = async (token) => {
   }
 };
 
+export const getAllProductsAdmin = async (token) => {
+  try {
+    const response = await apiClient.get(`/api/Product`, {
+      headers: {
+        Authorization: `${token}`,
+      },
+    });
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+};
+
 export const getProductByID = async (productId, token) => {
   try {
     const response = await apiClient.get(`/api/Product/${productId}`, {

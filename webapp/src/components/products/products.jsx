@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import ProductModel from "./productModal";
-import { getAllProducts, createProduct, deleteProductByID } from "../../api/services/productService";
+import { getAllProducts, createProduct, deleteProductByID,getAllProductsAdmin } from "../../api/services/productService";
 import ProductViewModal from "./ViewProduct";
+import ViewProductModal from "./ViewProductModel";
 
 export default function Products() {
   const [productData, setProductData] = useState([]);
@@ -16,29 +17,57 @@ export default function Products() {
 
   // Get the token from the Redux store
   const token = useSelector((state) => state.auth.loggedUser.token);
+  const role = useSelector((state) => state.auth.loggedUser.role);
+  console.log("Role:", role); // Log the role value
 
   useEffect(() => {
     try {
-      if (token) {
-        getAllProducts(token)
-          .then((response) => {
-            console.log("API Response:", response.data); // Log the API response
-            setProductData(response); // Store the array of admin objects in state
-            setLoading(false);
-            console.log("vendor Data:", productData);
-          })
-          .catch((error) => {
-            console.error(
-              "Error fetching vendor profiles:",
-              error.response || error
-            ); // Log the error
-            setError("Failed to fetch vendor profiles");
-            setLoading(false);
-          });
-      } else {
-        console.error("No token found. Please log in.");
-        setError("No token found. Please log in.");
-        setLoading(false);
+      if(role === "vender"){
+        if (token) {
+          getAllProducts(token)
+            .then((response) => {
+              console.log("API Response:", response.data); // Log the API response
+              setProductData(response); // Store the array of admin objects in state
+              setLoading(false);
+              console.log("vendor Data:", productData);
+            })
+            .catch((error) => {
+              console.error(
+                "Error fetching vendor profiles:",
+                error.response || error
+              ); // Log the error
+              setError("Failed to fetch vendor profiles");
+              setLoading(false);
+            });
+        } else {
+          console.error("No token found. Please log in.");
+          setError("No token found. Please log in.");
+          setLoading(false);
+        }
+      }
+      else if(role === "admin" || role === "csr"){
+        if (token) {
+          getAllProductsAdmin(token)
+            .then((response) => {
+              console.log("API Response:", response.data); // Log the API response
+              setProductData(response); // Store the array of admin objects in state
+              setLoading(false);
+              console.log("vendor Data:", productData);
+              
+            })
+            .catch((error) => {
+              console.error(
+                "Error fetching vendor profiles:",
+                error.response || error
+              ); // Log the error
+              setError("Failed to fetch vendor profiles");
+              setLoading(false);
+            });
+        } else {
+          console.error("No token found. Please log in.");
+          setError("No token found. Please log in.");
+          setLoading(false);
+        }
       }
     } catch (error) {
       alert("Error fetching admin profiles");
@@ -158,7 +187,9 @@ export default function Products() {
                   <td>{product.isCategoryActive ? "Active" : "Deactive"}</td>
                   <td>{product.isActive ? "Active" : "Deactive"}</td>
                   <td><button className="btn btn-primary btn-sm" onClick={() => handleViewProduct(product.id)}>View</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(product.id)}>Delete</button></td>
+                  {role === "vendor" ? <button className="btn btn-danger btn-sm" onClick={() => handleDelete(product.id)}>Delete</button>
+                  :null}</td>
+                    
                 </tr>
               ))
             ) : (
@@ -174,11 +205,17 @@ export default function Products() {
         handleClose={handleCloseModal}
         handleAddUser={handleAddProducts}
       />
-      <ProductViewModal
+      {role === "vendor" ?< ProductViewModal
         show={showViewModal}
         handleClose={handleCloseViewModal}
         productId={selectedProductId}
-      />
+      /> : <ViewProductModal
+        show={showViewModal}
+        handleClose={handleCloseViewModal}
+        productId={selectedProductId}/>
+
+      }
+      
     </div>
   );
 }
