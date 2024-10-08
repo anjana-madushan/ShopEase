@@ -1,0 +1,81 @@
+.custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 10px; /* Curved edges for the entire table */
+    overflow: hidden; /* To ensure border-radius applies to the entire table */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adding some shadow for a lifted effect */
+  }
+  
+  /* Header styling */
+  .custom-table thead th {
+    background-color: #f3f4f6; /* Light gray background for header */
+    color: #333;
+    font-weight: bold;
+    padding: 15px;
+    text-align: left;
+    color: #8a8b8c;
+  }
+  
+  .custom-table thead th:first-child {
+    border-top-left-radius: 15px; /* Rounded corner on top-left */
+  }
+  
+  .custom-table thead th:last-child {
+    border-top-right-radius: 15px; /* Rounded corner on top-right */
+  }
+  
+  /* Body styling */
+  .custom-table tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .custom-table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+  }
+  
+  .custom-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 15px; /* Rounded corner on bottom-left */
+  }
+  
+  .custom-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 15px; /* Rounded corner on bottom-right */
+  }
+  
+  /* Badge styling */
+  .badge-pending {
+    background-color: #cbd5e1;
+    color: #333;
+    padding: 0.5em 1em;
+    border-radius: 10px;
+  }
+  
+  .badge-approved {
+    background-color: #10b981;
+    color: #fff;
+    padding: 0.5em 1em;
+    border-radius: 10px;
+  }
+  
+  .badge-declined {
+    background-color: #f87171;
+    color: #fff;
+    padding: 0.5em 1em;
+    border-radius: 10px;
+  }
+  
+  /* Hover effect for details link */
+  .details-link {
+    color: #1d4ed8;
+    text-decoration: none;
+  }
+  
+  .details-link:hover {
+    text-decoration: underline;
+  }
+  
+  .custom-table .icon{
+    color: #cccfce;
+  }

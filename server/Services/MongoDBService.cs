@@ -56,9 +56,20 @@ namespace server.Services
 
     public async Task<List<Product>> GetProductsCustomerAsync()
     {
-      var filter = Builders<Product>.Filter.Eq(p => p.IsActive, true);
-      return await _productCollection.Find(filter).ToListAsync();
+      var filterBuilder = Builders<Product>.Filter;
+      var filterActiveCategory = filterBuilder.Eq(p => p.IsCategoryActive, true);
+      var filterActiveProducts = filterBuilder.Eq(p => p.IsActive, true);
+      var combinedFilter = filterBuilder.And(filterActiveCategory, filterActiveProducts);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
     }
+
+    public async Task<List<string>> GetDistinctCategoriesAsync()
+    {
+      var filterBuilder = Builders<Product>.Filter;
+      var filterActiveCategory = filterBuilder.Eq(p => p.IsCategoryActive, true);
+      return await _productCollection.Distinct<string>("Category", filterActiveCategory).ToListAsync();
+    }
+
 
     public async Task<List<Product>> GetProductsVenderAsync(string venderId)
     {
@@ -71,7 +82,8 @@ namespace server.Services
       var filterBuilder = Builders<Product>.Filter;
       var nameFilter = filterBuilder.Regex("ProductName", new BsonRegularExpression($"^{productName}", "i"));
       var activeFilter = filterBuilder.Eq("IsActive", true);
-      var combinedFilter = filterBuilder.And(nameFilter, activeFilter);
+      var filterActiveCategory = filterBuilder.Eq(p => p.IsCategoryActive, true);
+      var combinedFilter = filterBuilder.And(nameFilter, activeFilter, filterActiveCategory);
       return await _productCollection.Find(combinedFilter).ToListAsync();
     }
 
@@ -80,7 +92,16 @@ namespace server.Services
       var filterBuilder = Builders<Product>.Filter;
       var categoryFilter = Builders<Product>.Filter.Eq(p => p.Category, category);
       var activeFilter = filterBuilder.Eq("IsActive", true);
-      var combinedFilter = filterBuilder.And(categoryFilter, activeFilter);
+      var filterActiveCategory = filterBuilder.Eq(p => p.IsCategoryActive, true);
+      var combinedFilter = filterBuilder.And(categoryFilter, activeFilter, filterActiveCategory);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
+    }
+
+    public async Task<List<Product>> GetAllProductsBasedOnCategoryAsync(string category)
+    {
+      var filterBuilder = Builders<Product>.Filter;
+      var categoryFilter = Builders<Product>.Filter.Eq(p => p.Category, category);
+      var combinedFilter = filterBuilder.And(categoryFilter);
       return await _productCollection.Find(combinedFilter).ToListAsync();
     }
 
@@ -94,6 +115,15 @@ namespace server.Services
 
     public async Task UpdateProductAsync(string id, Product updatedProduct) =>
         await _productCollection.ReplaceOneAsync(x => x.Id == id, updatedProduct);
+
+    public async Task<UpdateResult> UpdateCategoryStatusAsync(string category, bool newStatus)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Category, category);
+
+      var update = Builders<Product>.Update.Set(p => p.IsCategoryActive, newStatus);
+
+      return await _productCollection.UpdateManyAsync(filter, update);
+    }
 
     public async Task<bool> DeleteProductAsync(string id)
     {
@@ -184,29 +214,29 @@ namespace server.Services
     //Get admin by ID
     public async Task<Admin?> GetAdminByIdAsync(string id) =>
         await _adminCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
-        
+
 
     //Get admin by email
     public async Task<Admin?> GetAdminByEmailAsync(string email) =>
         await _adminCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
 
     // Update admin by ID (username, email, password)
-public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
-{
-    var filter = Builders<Admin>.Filter.Eq(a => a.Id, adminId);
-
-    var update = Builders<Admin>.Update
-        .Set(a => a.Username, updatedAdmin.Username)
-        .Set(a => a.Email, updatedAdmin.Email)
-        .Set(a => a.Password, updatedAdmin.Password);
-
-    var updateResult = await _adminCollection.UpdateOneAsync(filter, update);
-
-    if (updateResult.MatchedCount == 0)
+    public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
     {
+      var filter = Builders<Admin>.Filter.Eq(a => a.Id, adminId);
+
+      var update = Builders<Admin>.Update
+          .Set(a => a.Username, updatedAdmin.Username)
+          .Set(a => a.Email, updatedAdmin.Email)
+          .Set(a => a.Password, updatedAdmin.Password);
+
+      var updateResult = await _adminCollection.UpdateOneAsync(filter, update);
+
+      if (updateResult.MatchedCount == 0)
+      {
         throw new Exception($"Admin with ID {adminId} not found.");
+      }
     }
-}
 
 
     // Update CSR by ID
@@ -234,10 +264,10 @@ public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
     }
 
     // Update Customer by ID
-    public async Task UpdateCustomerAsync(string customerId,  Users updatedCustomer)
+    public async Task UpdateCustomerAsync(string customerId, Users updatedCustomer)
     {
       var filter = Builders<Users>.Filter.Eq(a => a.Id, customerId);
-      var updateResult =  await _customerCollection.ReplaceOneAsync(filter, updatedCustomer);
+      var updateResult = await _customerCollection.ReplaceOneAsync(filter, updatedCustomer);
 
       if (updateResult.MatchedCount == 0)
       {
@@ -563,6 +593,9 @@ public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
     //Get Notification by ID
     public async Task<Notification?> GetNotificationByIdAsync(string id) =>
         await _notificationCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    public async Task<List<Notification>> GetNotificationsByUserID(string id) =>
+    await _notificationCollection.Find(x => x.UserId == id).ToListAsync();
 
     //Delete Notification
     public async Task DeleteNotificationAsync(string notificationId)
