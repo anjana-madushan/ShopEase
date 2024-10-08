@@ -3,7 +3,7 @@ using server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using YourNamespace.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 

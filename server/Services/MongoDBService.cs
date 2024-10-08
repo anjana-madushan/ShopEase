@@ -8,6 +8,7 @@ namespace server.Services
   public class MongoDBService
   {
     private readonly IMongoCollection<Product> _productCollection;
+    private readonly IMongoCollection<Comments> _commentCollection;
     private readonly IMongoCollection<Admin> _adminCollection;
     private readonly IMongoCollection<Order> _orderCollection;
 
@@ -29,6 +30,7 @@ namespace server.Services
 
         // Initialize the collections
         _productCollection = database.GetCollection<Product>(mongoDBConfigs.Value.MongoProductCollection);
+        _commentCollection = database.GetCollection<Comments>(mongoDBConfigs.Value.MongoCommentCollection);
         _adminCollection = database.GetCollection<Admin>(mongoDBConfigs.Value.MongoAdminCollection);
         _orderCollection = database.GetCollection<Order>(mongoDBConfigs.Value.MongoOrderCollection);
         _notificationCollection = database.GetCollection<Notification>(mongoDBConfigs.Value.MongoNotificationCollection);
@@ -52,6 +54,36 @@ namespace server.Services
       return await _productCollection.Find(new BsonDocument()).ToListAsync();
     }
 
+    public async Task<List<Product>> GetProductsCustomerAsync()
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.IsActive, true);
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductsVenderAsync(string venderId)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.VenderId, venderId);
+      return await _productCollection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Product>> SearchProduct(string productName)
+    {
+      var filterBuilder = Builders<Product>.Filter;
+      var nameFilter = filterBuilder.Regex("ProductName", new BsonRegularExpression($"^{productName}", "i"));
+      var activeFilter = filterBuilder.Eq("IsActive", true);
+      var combinedFilter = filterBuilder.And(nameFilter, activeFilter);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductsCategoryBasedAsync(string category)
+    {
+      var filterBuilder = Builders<Product>.Filter;
+      var categoryFilter = Builders<Product>.Filter.Eq(p => p.Category, category);
+      var activeFilter = filterBuilder.Eq("IsActive", true);
+      var combinedFilter = filterBuilder.And(categoryFilter, activeFilter);
+      return await _productCollection.Find(combinedFilter).ToListAsync();
+    }
+
     public async Task<Product?> GetProductAsync(string id) =>
         await _productCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
@@ -63,10 +95,66 @@ namespace server.Services
     public async Task UpdateProductAsync(string id, Product updatedProduct) =>
         await _productCollection.ReplaceOneAsync(x => x.Id == id, updatedProduct);
 
-    public async Task DeleteProductAsync(string id)
+    public async Task<bool> DeleteProductAsync(string id)
     {
       FilterDefinition<Product> filter = Builders<Product>.Filter.Eq("Id", id);
-      await _productCollection.DeleteOneAsync(filter);
+      var result = await _productCollection.DeleteOneAsync(filter);
+      return result.DeletedCount > 0;
+    }
+
+    public async Task<bool> ChangeProductStatusAsync(string id, bool isActive)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Id, id);
+      var update = Builders<Product>.Update.Set(p => p.IsActive, isActive);
+
+      var result = await _productCollection.UpdateOneAsync(filter, update);
+      return result.ModifiedCount > 0;
+    }
+
+    //Inventory methods
+    public async Task<bool> DeductAvailableStock(string id, int quantity)
+    {
+      var filter = Builders<Product>.Filter.Eq(p => p.Id, id);
+      var updatedAvailableStock = quantity;
+      var update = Builders<Product>.Update.Set(p => p.StockLevel, updatedAvailableStock);
+
+      var result = await _productCollection.UpdateOneAsync(filter, update);
+      return result.ModifiedCount > 0;
+    }
+
+    //Comment Methods
+    public async Task CreateCommentAndRate(Comments comment)
+    {
+      await _commentCollection.InsertOneAsync(comment);
+    }
+
+    public async Task<List<Comments>> GetCommentsAsync()
+    {
+      return await _commentCollection.Find(new BsonDocument()).ToListAsync();
+    }
+
+    public async Task<Comments?> GetCommentAsync(string id) =>
+        await _commentCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    public async Task<List<Comments>> GetCustomerSpecificCommentsAsync(string customerId)
+    {
+      return await _commentCollection.Find(x => x.CustomerId == customerId).ToListAsync();
+    }
+
+    public async Task<List<Comments>> GetVenderSpecificCommentsAsync(string venderId)
+    {
+      return await _commentCollection.Find(x => x.VendorId == venderId).ToListAsync();
+    }
+
+    public async Task UpdateCommentAsync(string id, Comments updatedComment) =>
+        await _commentCollection.ReplaceOneAsync(x => x.Id == id, updatedComment);
+
+
+    public async Task<bool> DeleteCommentAsync(string id)
+    {
+      FilterDefinition<Comments> filter = Builders<Comments>.Filter.Eq("Id", id);
+      var result = await _commentCollection.DeleteOneAsync(filter);
+      return result.DeletedCount > 0;
     }
 
     //User Management Methods
@@ -74,40 +162,58 @@ namespace server.Services
     // Create admin
     public async Task<Admin> CreateAdminAsync(Admin admin)
     {
+      if (admin == null)
+      {
+        throw new ArgumentNullException(nameof(admin), "Admin cannot be null.");
+      }
+
       await _adminCollection.InsertOneAsync(admin);
-      return admin;
+      var adminWithoutPassword = new Admin
+      {
+        Id = admin.Id,
+        Username = admin.Username,
+        Email = admin.Email,
+        AdminsCreated = admin.AdminsCreated,
+        CSRCreated = admin.CSRCreated
+      };
+
+      return adminWithoutPassword;
     }
+
 
     //Get admin by ID
     public async Task<Admin?> GetAdminByIdAsync(string id) =>
         await _adminCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+        
 
     //Get admin by email
     public async Task<Admin?> GetAdminByEmailAsync(string email) =>
         await _adminCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
 
-    // Update admin by ID
-    public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
-    {
-      var filter = Builders<Admin>.Filter.Eq(a => a.Id, adminId);
-      var updateResult = await _adminCollection.ReplaceOneAsync(filter, updatedAdmin);
+    // Update admin by ID (username, email, password)
+public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
+{
+    var filter = Builders<Admin>.Filter.Eq(a => a.Id, adminId);
 
-      if (updateResult.MatchedCount == 0)
-      {
+    var update = Builders<Admin>.Update
+        .Set(a => a.Username, updatedAdmin.Username)
+        .Set(a => a.Email, updatedAdmin.Email)
+        .Set(a => a.Password, updatedAdmin.Password);
+
+    var updateResult = await _adminCollection.UpdateOneAsync(filter, update);
+
+    if (updateResult.MatchedCount == 0)
+    {
         throw new Exception($"Admin with ID {adminId} not found.");
-      }
     }
+}
+
 
     // Update CSR by ID
-    public async Task UpdateCSRAsync(string csrId, Dictionary<string, object> updatedCSR)
+    public async Task UpdateCSRByIDAsync(string csrId, CSR updatedCSR)
     {
       var filter = Builders<CSR>.Filter.Eq(a => a.Id, csrId);
-      var update = Builders<CSR>.Update
-          .Set("Username", updatedCSR["Username"])
-          .Set("Email", updatedCSR["Email"])
-          .Set("Password", updatedCSR["Password"]);
-
-      var updateResult = await _csrCollection.UpdateOneAsync(filter, update);
+      var updateResult = await _csrCollection.ReplaceOneAsync(filter, updatedCSR);
 
       if (updateResult.MatchedCount == 0)
       {
@@ -116,19 +222,14 @@ namespace server.Services
     }
 
     // Update Vendor by ID
-    public async Task UpdateVendorAsync(string vendorId, Dictionary<string, object> updatedVendor)
+    public async Task UpdateVendorAsync(string vendorId, Vendor updatedVendor)
     {
       var filter = Builders<Vendor>.Filter.Eq(a => a.Id, vendorId);
-      var update = Builders<Vendor>.Update
-          .Set("Username", updatedVendor["Username"])
-          .Set("Email", updatedVendor["Email"])
-          .Set("Password", updatedVendor["Password"]);
-
-      var updateResult = await _vendorCollection.UpdateOneAsync(filter, update);
+      var updateResult = await _vendorCollection.ReplaceOneAsync(filter, updatedVendor);
 
       if (updateResult.MatchedCount == 0)
       {
-        throw new Exception($"Vendor with ID {vendorId} not found.");
+        throw new Exception($"Admin with ID {vendorId} not found.");
       }
     }
 
@@ -184,6 +285,7 @@ namespace server.Services
         await _customerCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
 
 
+
     // Update User by ID based on role
     public async Task<dynamic> UpdateUserAsync(string userId, string role, dynamic updatedUser)
     {
@@ -206,7 +308,7 @@ namespace server.Services
           {
             throw new Exception($"CSR with ID {userId} not found.");
           }
-          await UpdateCSRAsync(userId, updatedUser);
+          await UpdateCSRByIDAsync(userId, updatedUser);
           break;
 
         case "vendor":
@@ -237,38 +339,58 @@ namespace server.Services
 
     // Get CSR by ID
     public async Task<CSR?> GetCSRByIdAsync(string id) =>
-        await _csrCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+      await _csrCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
     // Get Vendor by ID
     public async Task<Vendor?> GetVendorByIdAsync(string id) =>
-        await _vendorCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+      await _vendorCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
     // Get Customer by ID
     public async Task<Users?> GetCustomerByIdAsync(string id) =>
-        await _customerCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+      await _customerCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
     //Get all Vendors
     public async Task<List<Vendor>> GetVendorsAsync()
     {
-      return await _vendorCollection.Find(new BsonDocument()).ToListAsync();
+      var vendors = await _vendorCollection.Find(new BsonDocument())
+          .Project<Vendor>(Builders<Vendor>.Projection
+          .Exclude(vendor => vendor.Password))
+          .ToListAsync();
+
+      return vendors;
     }
 
     //Get all Customers
     public async Task<List<Users>> GetAllCustomersAsync()
     {
-      return await _customerCollection.Find(new BsonDocument()).ToListAsync();
+      var customers = await _customerCollection.Find(new BsonDocument())
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password))
+          .ToListAsync();
+
+      return customers;
     }
 
     ///Get all csr
     public async Task<List<CSR>> GetAllCSRsAsync()
     {
-      return await _csrCollection.Find(new BsonDocument()).ToListAsync();
+      var csrs = await _csrCollection.Find(new BsonDocument())
+          .Project<CSR>(Builders<CSR>.Projection
+          .Exclude(csr => csr.Password))
+          .ToListAsync();
+
+      return csrs;
     }
 
     //Get all Admins
     public async Task<List<Admin>> GetAllAdminsAsync()
     {
-      return await _adminCollection.Find(new BsonDocument()).ToListAsync();
+      var admins = await _adminCollection.Find(new BsonDocument())
+          .Project<Admin>(Builders<Admin>.Projection
+          .Exclude(admin => admin.Password))
+          .ToListAsync();
+
+      return admins;
     }
 
     //Update Customer 
@@ -298,19 +420,28 @@ namespace server.Services
     //Get all approved customers
     public async Task<List<Users>> GetApprovedCustomersAsync()
     {
-      return await _customerCollection.Find(x => x.ApprovalStatus == true).ToListAsync();
-    }
+      return await _customerCollection.Find(x => x.ApprovalStatus == true)
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password))
+          .ToListAsync();
 
+    }
     //Get all unapproved customers
     public async Task<List<Users>> GetUnapprovedCustomersAsync()
     {
-      return await _customerCollection.Find(x => x.ApprovalStatus == false).ToListAsync();
+      return await _customerCollection.Find(x => x.ApprovalStatus == false)
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password))
+          .ToListAsync();
     }
 
     //Get all approved customers by ID based on Approved By
     public async Task<List<Users>> GetApprovedCustomersByIdAsync(string adminId)
     {
-      return await _customerCollection.Find(x => x.ApprovedBy == adminId).ToListAsync();
+      return await _customerCollection.Find(x => x.ApprovedBy == adminId && x.ApprovalStatus == true)
+          .Project<Users>(Builders<Users>.Projection
+          .Exclude(customer => customer.Password))
+          .ToListAsync();
     }
 
     //Get All deactivated customers
@@ -341,7 +472,7 @@ namespace server.Services
             throw new Exception($"CSR with ID {userId} not found.");
           }
           csr.Password = newPassword;
-          await UpdateCSRAsync(userId, csr);
+          await UpdateCSRByIDAsync(userId, csr);
           break;
 
         case "vendor":
@@ -374,10 +505,10 @@ namespace server.Services
       throw new NotImplementedException();
     }
 
-    private async Task UpdateVendorAsync(string userId, Vendor vendor)
-    {
-      throw new NotImplementedException();
-    }
+    // private async Task UpdateVendorAsync(string userId, Vendor vendor)
+    // {
+    //   throw new NotImplementedException();
+    // }
 
     private async Task UpdateCustomerAsync(string userId, Users customer)
     {
