@@ -36,9 +36,8 @@ import java.util.Collections;
 public class MainActivity extends AppCompatActivity {
   private final ProductsRepository productsRepository = new ProductsRepository();
 
-  RecyclerView rv_categories;
-  RecyclerView rv_products;
-  ImageButton btn_profile;
+ private  RecyclerView rv_categories;
+ private  RecyclerView rv_products;
 
   LinearLayoutManager h_linearLayoutManager;
   LinearLayoutManager v_linearLayoutManager;
@@ -71,11 +70,14 @@ public class MainActivity extends AppCompatActivity {
       return insets;
     });
 
+    ImageButton btn_profile = findViewById(R.id.btn_profile);
+    ImageButton main_btn_cart = findViewById(R.id.main_btn_cart);
+
     rv_categories = findViewById(R.id.rv_categories);
     rv_products = findViewById(R.id.rv_items);
-    btn_profile = findViewById(R.id.btn_profile);
 
     btn_profile.setOnClickListener(v -> goToProfile());
+    main_btn_cart.setOnClickListener(v-> goToCart());
 
     h_linearLayoutManager = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false);
     v_linearLayoutManager = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.VERTICAL, false);
@@ -84,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void checkUIReady() {
-    if (rv_categories != null && rv_products != null && btn_profile != null) {
+    if (rv_categories != null && rv_products != null) {
       DialogHelper.hideLoading();
     }
   }
@@ -131,6 +133,11 @@ public class MainActivity extends AppCompatActivity {
 
   private void goToProfile() {
     Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+    startActivity(intent);
+  }
+
+  private void goToCart() {
+    Intent intent = new Intent(MainActivity.this, ShoppingCartActivity.class);
     startActivity(intent);
   }
 

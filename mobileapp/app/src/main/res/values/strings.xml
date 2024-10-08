@@ -38,4 +38,8 @@
     <string name="add_to_cart">Add to Cart (%1$d)</string>
     <string name="available">Available: %1$d</string>
     <string name="shopping_cart">Shopping Cart</string>
+    <string name="pay_now">Pay Now</string>
+    <string name="my_cart">My Cart</string>
+    <string name="count">Count</string>
+    <string name="add">Add</string>
 </resources>

@@ -80,4 +80,8 @@ public class Cart {
     Gson gson = new Gson();
     return gson.toJson(items);
   }
+
+  public Map<String, Integer> getItems() {
+    return items;
+  }
 }

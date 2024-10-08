@@ -1,7 +1,9 @@
 package com.sliit.shopease.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -46,6 +48,8 @@ public class ProductActivity extends AppCompatActivity {
       return insets;
     });
 
+    ImageButton btn_cart = findViewById(R.id.prod_btn_cart);
+
     //get product id from intent
     productId = getIntent().getStringExtra("productId");
     cart = new Cart(this);
@@ -59,8 +63,14 @@ public class ProductActivity extends AppCompatActivity {
     prod_img = findViewById(R.id.prod_img);
 
     btn_add_cart.setOnClickListener(v -> addToCart());
+    btn_cart.setOnClickListener(v -> goToCart());
 
     loadData();
+  }
+
+  private void goToCart(){
+    Intent intent = new Intent(ProductActivity.this, ShoppingCartActivity.class);
+    startActivity(intent);
   }
 
   private void loadData() {

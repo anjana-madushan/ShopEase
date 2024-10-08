@@ -71,7 +71,10 @@ public class RegisterActivity extends AppCompatActivity {
 
   void goToLogin(boolean showSuccessMessage) {
     Intent intent = new Intent(this, SignInActivity.class);
-    intent.putExtra("REGISTRATION_SUCCESS", true); // Pass success flag
+    if (showSuccessMessage) {
+      intent.putExtra("REGISTRATION_SUCCESS", true); // Pass success flag
+    }
+
     startActivity(intent);
     finish();
   }
