@@ -18,10 +18,10 @@ import com.sliit.shopease.R;
 import com.sliit.shopease.helpers.DialogHelper;
 import com.sliit.shopease.interfaces.NetworkCallback;
 import com.sliit.shopease.models.ShopEaseError;
-import com.sliit.shopease.repository.AuthenticationRepo;
+import com.sliit.shopease.repository.UserRepo;
 
 public class ResetPasswordActivity extends AppCompatActivity {
-  private final AuthenticationRepo authenticationRepo = new AuthenticationRepo();
+  private final UserRepo userRepo = new UserRepo();
   private EditText reset_edt_email;
 
   @Override
@@ -69,7 +69,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
     DialogHelper.showLoading(this, "Sending OTP...");
 
-    authenticationRepo.sendOtp(this, email, new NetworkCallback() {
+    userRepo.sendOtp(this, email, new NetworkCallback() {
       @Override
       public void onSuccess(String response) {
         System.out.println("Reset password:" + response);
