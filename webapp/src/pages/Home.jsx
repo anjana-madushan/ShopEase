@@ -1,13 +1,14 @@
-import React from 'react';
-import Navbar from '../components/Navbar';
-import { navKeys } from '../utils/navkeys';
-import Layout from '../components/Layout';
-import AdminTable from '../components/users/admin/AdminTable';
-import CsrList from '../components/users/csr/CsrList';
-import VenderList from '../components/users/vendor/venderList';
-import Products from '../components/products/products';
-import Comments from '../components/comments/comments';
-import CustomerList from '../components/customer/CustomerList';
+import React from "react";
+import Navbar from "../components/Navbar";
+import { navKeys } from "../utils/navkeys";
+import Layout from "../components/Layout";
+import AdminTable from "../components/users/admin/AdminTable";
+import CsrList from "../components/users/csr/CsrList";
+import VenderList from "../components/users/vendor/venderList";
+import Products from "../components/products/products";
+import Comments from "../components/comments/comments";
+import CustomerList from "../components/customer/CustomerList";
+import OrderList from "../components/orders/OrderList";
 
 export default function Home() {
   const [selectedKey, setSelectedKey] = React.useState(navKeys[0].key);
@@ -50,14 +51,37 @@ export default function Home() {
     if (selectedKey === "orders" && !selectedSubKey) {
       return (
         <>
-
+          <OrderList />
         </>
       );
     }
     if (selectedKey === "products" && !selectedSubKey) {
+      return <></>;
+    }
+
+    if (selectedKey === "venders" && !selectedSubKey) {
       return (
         <>
+          <VenderList />
+        </>
+      );
+    }
+    if (selectedKey === "inventory" && !selectedSubKey) {
+      return <></>;
+    }
 
+    if (selectedKey === "comments" && !selectedSubKey) {
+      return (
+        <>
+          <Comments />
+        </>
+      );
+    }
+
+    if (selectedKey === "customers" && !selectedSubKey) {
+      return (
+        <>
+          <CustomerList />
         </>
       );
     }
@@ -70,49 +94,14 @@ export default function Home() {
       );
     }
     if (selectedKey === "inventory" && !selectedSubKey) {
-      return (
-        <>
-
-        </>
-      );
-
+      return <></>;
     }
 
-    if (selectedKey === "comments" && !selectedSubKey) {
-      return (
-        <>
-          <Comments />
-        </>
-      );
-
-    }
-        
-
-      if (selectedKey === "customers" && !selectedSubKey) {
-        return (
-          <>
-            <CustomerList/>
-          </>
-        );
-      }
-     
-    if (selectedKey === "venders" && !selectedSubKey) {
-        return (
-          <>
-           <VenderList/>
-          </>
-        );
-      }
-      if (selectedKey === "inventory" && !selectedSubKey) {
-        return (
-          <>
-
-          </>
-        );
-      }
-
-
-    return <div>{selectedKey.charAt(0).toUpperCase() + selectedKey.slice(1)} Content</div>;
+    return (
+      <div>
+        {selectedKey.charAt(0).toUpperCase() + selectedKey.slice(1)} Content
+      </div>
+    );
   };
 
   return (
@@ -125,7 +114,13 @@ export default function Home() {
 
       {/* Main and subpage rendering */}
       <div style={{ flex: 1 }}>
-        <Layout title={selectedSubKey ? selectedSubKey.charAt(0).toUpperCase() + selectedSubKey.slice(1) : selectedKey.charAt(0).toUpperCase() + selectedKey.slice(1)}>
+        <Layout
+          title={
+            selectedSubKey
+              ? selectedSubKey.charAt(0).toUpperCase() + selectedSubKey.slice(1)
+              : selectedKey.charAt(0).toUpperCase() + selectedKey.slice(1)
+          }
+        >
           {renderContent()}
         </Layout>
       </div>

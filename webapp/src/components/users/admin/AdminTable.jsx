@@ -102,7 +102,6 @@ export default function AdminTable() {
         <table className="table custom-table">
           <thead>
             <tr>
-              <th scope="col">Id</th>
               <th scope="col">Username</th>
               <th scope="col">Email</th>
               <th scope="col">Action</th>
@@ -112,7 +111,6 @@ export default function AdminTable() {
             {adminData?.length > 0 ? (
               adminData.map((admin) => (
                 <tr key={admin.id}>
-                  <td>{admin.id}</td>
                   <td>{admin.username}</td>
                   <td>{admin.email}</td>
                   <td><button  className="btn btn-primary btn-sm">Details</button></td>

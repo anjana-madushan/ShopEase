@@ -1,6 +1,6 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { createVender, getAllUsers } from '../../../api/services/authService';
+import { createVender, getAllUsers } from "../../../api/services/authService";
 import UserModel from "../UserModel";
 
 export default function VenderList() {
@@ -16,11 +16,11 @@ export default function VenderList() {
   useEffect(() => {
     try {
       if (token) {
-        getAllUsers(token , "vendor")
+        getAllUsers(token, "vendor")
           .then((response) => {
             console.log("API Response:", response.data); // Log the API response
             setVendorData(response); // Store the array of admin objects in state
-            setLoading(false); 
+            setLoading(false);
             //console.log("Admin Data:", adminData);
           })
           .catch((error) => {
@@ -52,10 +52,15 @@ export default function VenderList() {
     try {
       setError(null);
       setSuccess(null);
-      const response = await createVender(newCsr.username, newCsr.password, newCsr.email, token);
+      const response = await createVender(
+        newCsr.username,
+        newCsr.password,
+        newCsr.email,
+        token
+      );
 
       if (response.newCsr) {
-        setSuccess("Admin added successfully!"); 
+        setSuccess("Admin added successfully!");
         setVendorData((prevData) => [...prevData, response.newCsr]);
       } else {
         console.error("Failed to add admin: No new admin in response");
@@ -63,7 +68,10 @@ export default function VenderList() {
       }
     } catch (error) {
       console.error("Error adding admin:", error);
-      setError("Error adding admin: " + (error.response?.data?.message || error.message)); 
+      setError(
+        "Error adding admin: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -81,22 +89,26 @@ export default function VenderList() {
 
   // Render the table with admin profiles
   return (
-    
     <div className="container">
-        <div style={{paddingBottom: "20px"}}>
+      <div style={{ paddingBottom: "20px" }}>
         <button
-              onClick={handleShowModal}
-              className="btn btn-primary btn-block mt-4"
-              style={{padding: "10px 20px", width: "100px", fontSize: "16px", fontWeight: "bold"}}>
-             Add
-            </button>
-        </div>
-      
-      <div className="table-wrapper" >
+          onClick={handleShowModal}
+          className="btn btn-primary btn-block mt-4"
+          style={{
+            padding: "10px 20px",
+            width: "100px",
+            fontSize: "16px",
+            fontWeight: "bold",
+          }}
+        >
+          Add
+        </button>
+      </div>
+
+      <div className="table-wrapper">
         <table className="table custom-table">
           <thead>
             <tr>
-              <th scope="col">Id</th>
               <th scope="col">Username</th>
               <th scope="col">Email</th>
               <th scope="col">Action</th>
@@ -106,10 +118,11 @@ export default function VenderList() {
             {vendorData?.length > 0 ? (
               vendorData.map((vendor) => (
                 <tr key={vendor.id}>
-                  <td>{vendor.id}</td>
                   <td>{vendor.username}</td>
                   <td>{vendor.email}</td>
-                  <td><button  className="btn btn-primary btn-sm">Details</button></td>
+                  <td>
+                    <button className="btn btn-primary btn-sm">Details</button>
+                  </td>
                 </tr>
               ))
             ) : (
@@ -128,4 +141,3 @@ export default function VenderList() {
     </div>
   );
 }
-

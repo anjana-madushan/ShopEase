@@ -97,7 +97,6 @@ export default function CsrList() {
         <table className="table custom-table">
           <thead>
             <tr>
-              <th scope="col">Id</th>
               <th scope="col">Username</th>
               <th scope="col">Email</th>
               <th scope="col">Action</th>
@@ -107,7 +106,6 @@ export default function CsrList() {
             {csrData?.length > 0 ? (
               csrData.map((csr) => (
                 <tr key={csr.id}>
-                  <td>{csr.id}</td>
                   <td>{csr.username}</td>
                   <td>{csr.email}</td>
                   <td><button  className="btn btn-primary btn-sm">Details</button></td>
