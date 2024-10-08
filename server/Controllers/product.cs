@@ -130,6 +130,30 @@ public class ProductController : ControllerBase
     }
   }
 
+  [HttpGet("pricesort")]
+  public async Task<IActionResult> SortBasedPrice()
+  {
+    try
+    {
+      var userId = await AuthorizeCustomerAsync();
+      if (userId == null)
+      {
+        return Unauthorized("Unauthorized user.");
+      }
+      var products = await _mongoDBService.GetProductsAsync();
+      if (products.Count == 0)
+      {
+        return NotFound(new { Message = "Products are not found" });
+      }
+      var productSortList = products.OrderByDescending(v => v.Price).ToList();
+      return Ok(productSortList);
+    }
+    catch (Exception error)
+    {
+      return StatusCode(500, new { Message = "An unexpected error occurred while Getting the Products", Error = error.Message });
+    }
+  }
+
   [HttpGet("{id:length(24)}")]
   public async Task<ActionResult<Product>> Get(string id)
   {
@@ -296,7 +320,7 @@ public class ProductController : ControllerBase
   {
     try
     {
-      var userId = await AuthorizeVenderAsync();
+      var userId = await AuthorizeAdminAsync();
       if (userId == null)
       {
         return Unauthorized("Unauthorized user.");

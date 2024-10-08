@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -20,8 +21,6 @@ builder.Services.AddCors(options =>
           .AllowAnyMethod()
           .AllowAnyHeader());
 });
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-builder.Services.AddSingleton<EmailServiceAlt>();
 
 // Configure MongoDB service
 builder.Services.Configure<MongoDBConfig>(builder.Configuration.GetSection("MongoDB"));
@@ -34,11 +33,11 @@ builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<EmailService>(provider =>
 {
-  var config = provider.GetRequiredService<IConfiguration>();
-  var apiKey = config["SendGrid:ApiKey"];
-  var senderEmail = config["SendGrid:SenderEmail"];
-  var senderName = config["SendGrid:SenderName"];
-  return new EmailService(apiKey, senderEmail, senderName);
+    var config = provider.GetRequiredService<IConfiguration>();
+    var apiKey = config["SendGrid:ApiKey"];
+    var senderEmail = config["SendGrid:SenderEmail"];
+    var senderName = config["SendGrid:SenderName"];
+    return new EmailService(apiKey, senderEmail, senderName);
 });
 
 builder.Services.AddSingleton<OTPService>();
@@ -81,7 +80,7 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 
