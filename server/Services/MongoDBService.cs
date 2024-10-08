@@ -264,10 +264,10 @@ namespace server.Services
     }
 
     // Update Customer by ID
-    public async Task UpdateCustomerAsync(string customerId,  Users updatedCustomer)
+    public async Task UpdateCustomerAsync(string customerId, Users updatedCustomer)
     {
       var filter = Builders<Users>.Filter.Eq(a => a.Id, customerId);
-      var updateResult =  await _customerCollection.ReplaceOneAsync(filter, updatedCustomer);
+      var updateResult = await _customerCollection.ReplaceOneAsync(filter, updatedCustomer);
 
       if (updateResult.MatchedCount == 0)
       {
@@ -593,6 +593,9 @@ namespace server.Services
     //Get Notification by ID
     public async Task<Notification?> GetNotificationByIdAsync(string id) =>
         await _notificationCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+
+    public async Task<List<Notification>> GetNotificationsByUserID(string id) =>
+    await _notificationCollection.Find(x => x.UserId == id).ToListAsync();
 
     //Delete Notification
     public async Task DeleteNotificationAsync(string notificationId)
