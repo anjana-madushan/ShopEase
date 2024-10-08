@@ -217,7 +217,6 @@ namespace MongoExample.Controllers
                         return BadRequest("Invalid role provided.");
                 }
 
-
                 if (existingUser == null)
                 {
                     return NotFound("A user with the provided id does not exist.");
@@ -986,7 +985,7 @@ namespace MongoExample.Controllers
             }
 
         }
-      
+
 
     }
 }

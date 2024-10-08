@@ -234,15 +234,10 @@ public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
     }
 
     // Update Customer by ID
-    public async Task UpdateCustomerAsync(string customerId, Dictionary<string, object> updatedCustomer)
+    public async Task UpdateCustomerAsync(string customerId,  Users updatedCustomer)
     {
       var filter = Builders<Users>.Filter.Eq(a => a.Id, customerId);
-      var update = Builders<Users>.Update
-          .Set("Username", updatedCustomer["Username"])
-          .Set("Email", updatedCustomer["Email"])
-          .Set("Password", updatedCustomer["Password"]);
-
-      var updateResult = await _customerCollection.UpdateOneAsync(filter, update);
+      var updateResult =  await _customerCollection.ReplaceOneAsync(filter, updatedCustomer);
 
       if (updateResult.MatchedCount == 0)
       {
@@ -364,8 +359,6 @@ public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
     public async Task<List<Users>> GetAllCustomersAsync()
     {
       var customers = await _customerCollection.Find(new BsonDocument())
-          .Project<Users>(Builders<Users>.Projection
-          .Exclude(customer => customer.Password))
           .ToListAsync();
 
       return customers;
@@ -375,8 +368,6 @@ public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
     public async Task<List<CSR>> GetAllCSRsAsync()
     {
       var csrs = await _csrCollection.Find(new BsonDocument())
-          .Project<CSR>(Builders<CSR>.Projection
-          .Exclude(csr => csr.Password))
           .ToListAsync();
 
       return csrs;
@@ -386,8 +377,6 @@ public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
     public async Task<List<Admin>> GetAllAdminsAsync()
     {
       var admins = await _adminCollection.Find(new BsonDocument())
-          .Project<Admin>(Builders<Admin>.Projection
-          .Exclude(admin => admin.Password))
           .ToListAsync();
 
       return admins;
@@ -505,15 +494,6 @@ public async Task UpdateAdminAsync(string adminId, Admin updatedAdmin)
       throw new NotImplementedException();
     }
 
-    // private async Task UpdateVendorAsync(string userId, Vendor vendor)
-    // {
-    //   throw new NotImplementedException();
-    // }
-
-    private async Task UpdateCustomerAsync(string userId, Users customer)
-    {
-      throw new NotImplementedException();
-    }
 
     //Add a new order
     public async Task<Order> CreateOrder(Order order)
