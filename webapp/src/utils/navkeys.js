@@ -30,7 +30,7 @@ export const navKeys = [
     key: 'venders',
     name: 'Vendors',
     icon: 'FaIndustry',
-    subPages: [] 
+    subPages: []
   },
   {
     key: 'customers',
@@ -41,6 +41,12 @@ export const navKeys = [
   {
     key: 'products',
     name: 'Products',
+    icon: 'FaBox',
+    subPages: [] // Products main page
+  },
+  {
+    key: 'comments',
+    name: 'Comments',
     icon: 'FaBox',
     subPages: [] // Products main page
   },

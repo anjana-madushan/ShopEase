@@ -2,13 +2,14 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import { navKeys } from '../utils/navkeys';
 import Layout from '../components/Layout';
-import TableComponent from '../components/products/ProductTable';
 import AdminTable from '../components/users/admin/AdminTable';
 import CsrList from '../components/users/csr/CsrList';
 import VenderList from '../components/users/vendor/venderList';
+import Products from '../components/products/products';
+import Comments from '../components/comments/comments';
 export default function Home() {
-  const [selectedKey, setSelectedKey] = React.useState(navKeys[0].key); 
-  const [selectedSubKey, setSelectedSubKey] = React.useState(null); 
+  const [selectedKey, setSelectedKey] = React.useState(navKeys[0].key);
+  const [selectedSubKey, setSelectedSubKey] = React.useState(null);
 
   // Handle when a main key is selected
   const handleSelectedKey = (key) => {
@@ -26,53 +27,63 @@ export default function Home() {
     if (selectedKey === "dashboard" && !selectedSubKey) {
       return (
         <>
-        <TableComponent/>
+          <Products />
         </>
       );
     }
     if (selectedKey === "users" && selectedSubKey === "admins") {
-        return (
-          <>
-          <AdminTable/>
-          </>
-        );
-      }
+      return (
+        <>
+          <AdminTable />
+        </>
+      );
+    }
     if (selectedKey === "users" && selectedSubKey === "csr") {
-        return (
-          <>
-          <CsrList/>
-          </>
-        );
-      }
-      if (selectedKey === "orders" && !selectedSubKey) {
-        return (
-          <>
+      return (
+        <>
+          <CsrList />
+        </>
+      );
+    }
+    if (selectedKey === "orders" && !selectedSubKey) {
+      return (
+        <>
 
-          </>
-        );
-      }
-      if (selectedKey === "products" && !selectedSubKey) {
-        return (
-          <>
+        </>
+      );
+    }
+    if (selectedKey === "products" && !selectedSubKey) {
+      return (
+        <>
 
-          </>
-        );
-      }
-     
+        </>
+      );
+    }
+
     if (selectedKey === "venders" && !selectedSubKey) {
-        return (
-          <>
-           <VenderList/>
-          </>
-        );
-      }
-      if (selectedKey === "inventory" && !selectedSubKey) {
-        return (
-          <>
-          
-          </>
-        );
-      }
+      return (
+        <>
+          <VenderList />
+        </>
+      );
+    }
+    if (selectedKey === "inventory" && !selectedSubKey) {
+      return (
+        <>
+
+        </>
+      );
+
+    }
+
+    if (selectedKey === "comments" && !selectedSubKey) {
+      return (
+        <>
+          <Comments />
+        </>
+      );
+
+    }
 
 
     return <div>{selectedKey.charAt(0).toUpperCase() + selectedKey.slice(1)} Content</div>;

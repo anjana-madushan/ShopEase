@@ -1,6 +1,7 @@
-import  {  useState } from "react";
+/* eslint-disable react/prop-types */
+import { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-export default function UserModel({ show, handleClose,handleAddUser }) {
+export default function UserModel({ show, handleClose, handleAddUser }) {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
