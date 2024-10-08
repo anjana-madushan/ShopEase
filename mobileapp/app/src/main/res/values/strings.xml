@@ -4,7 +4,6 @@
     <string name="app_name">ShopEase</string>
     <string name="company_name">Company Name</string>
     <string name="create_new_account">Create new account</string>
-    <string name="create_or_reset_password">Create or Reset Password</string>
     <string name="email">Email</string>
     <string name="name">Name</string>
     <string name="non_descriptive_image">Non descriptive image</string>
@@ -29,4 +28,6 @@
     <string name="enter_value">Enter value</string>
     <string name="profile_button">Profile Button</string>
     <string name="logout">Logout</string>
+    <string name="settings_button">Settings Button</string>
+    <string name="forgot_password">Forgot Password?</string>
 </resources>

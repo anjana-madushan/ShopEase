@@ -69,6 +69,7 @@ public class SignInActivity extends AppCompatActivity {
     edt_pass = findViewById(R.id.signIn_edt_password);
 
     TextView txt_register = findViewById(R.id.login_txt_register);
+    TextView login_txt_resetPass = findViewById(R.id.login_txt_resetPass);
     Button btn_signIn = findViewById(R.id.signIn_btn_signIn);
     FloatingActionButton fab = findViewById(R.id.fab);
 
@@ -78,6 +79,7 @@ public class SignInActivity extends AppCompatActivity {
     fab.setOnClickListener(view -> showBaseUrlDialog());
     btn_signIn.setOnClickListener(this::signIn);
     txt_register.setOnClickListener(view -> goToRegister());
+    login_txt_resetPass.setOnClickListener(view -> goToResetPassword());
   }
 
   void showBaseUrlDialog() {
@@ -129,7 +131,7 @@ public class SignInActivity extends AppCompatActivity {
 
         try {
           final JSONObject res = new JSONObject(response);
-          final JSONObject userData = new JSONObject(res.getString("admin"));
+          final JSONObject userData = new JSONObject(res.getString("user"));
 
           final User user = new User(
               userData.getString("id"),
@@ -176,6 +178,11 @@ public class SignInActivity extends AppCompatActivity {
     Intent intent = new Intent(this, MainActivity.class);
     startActivity(intent);
     finish();
+  }
+
+  void goToResetPassword(){
+    Intent intent = new Intent(this, ResetPasswordActivity.class);
+    startActivity(intent);
   }
 }
 
