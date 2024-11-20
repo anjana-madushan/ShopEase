@@ -96,24 +96,24 @@
             android:text="@string/sign_in"
             android:textColor="@color/primary"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@id/txt_resetPass"
+            app:layout_constraintBottom_toTopOf="@id/login_txt_resetPass"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
 
         <TextView
-            android:id="@+id/txt_resetPass"
+            android:id="@+id/login_txt_resetPass"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="80dp"
-            android:text="@string/create_or_reset_password"
+            android:text="@string/forgot_password"
             android:textColor="@color/white"
-            app:layout_constraintBottom_toTopOf="@id/txt_register"
+            app:layout_constraintBottom_toTopOf="@id/login_txt_register"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
-            android:id="@+id/txt_register"
+            android:id="@+id/login_txt_register"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/create_new_account"
@@ -126,6 +126,7 @@
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:contentDescription="@string/settings_button"
             android:src="@drawable/icon_settings"
             app:backgroundTint="@color/primary_light"
             app:layout_constraintBottom_toBottomOf="parent"

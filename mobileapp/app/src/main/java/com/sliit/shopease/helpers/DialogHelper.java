@@ -78,6 +78,7 @@ public class DialogHelper {
   // Method to show a loading dialog
   private static Dialog loadingDialog;
   public static void showLoading(Context context, String message) {
+    hideLoading();
     // Create a new loading dialog if it doesn't already exist
     if (loadingDialog == null) {
       loadingDialog = new Dialog(context);
@@ -98,6 +99,7 @@ public class DialogHelper {
   public static void hideLoading() {
     if (loadingDialog != null && loadingDialog.isShowing()) {
       loadingDialog.dismiss();
+      loadingDialog = null;
     }
   }
 

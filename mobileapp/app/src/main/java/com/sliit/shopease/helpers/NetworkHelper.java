@@ -1,14 +1,19 @@
 package com.sliit.shopease.helpers;
 
+import static android.webkit.URLUtil.isValidUrl;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.sliit.shopease.constants.PrefKeys;
 import com.sliit.shopease.interfaces.NetworkCallback;
 import com.sliit.shopease.models.ShopEaseError;
+import com.sliit.shopease.models.User;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -44,15 +49,20 @@ public class NetworkHelper {
   }
 
   // Perform GET Request
-  public void get(Context context, String url, NetworkCallback callback) {
+  public void get(Context context, String url, boolean includeToken, NetworkCallback<String> callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
+    User user = User.fromJson(sharedPreferencesHelper.getString(PrefKeys.USER, ""));
+    final String token = user.getToken();
 
-    Request request = new Request.Builder()
-        .url(baseUrl + url)
-        .build();
+    Request.Builder request = new Request.Builder();
+    request.url(baseUrl + url);
 
-    client.newCall(request).enqueue(new Callback() {
+    if(includeToken) {
+      request.header("Authorization", token);
+    }
+
+    client.newCall(request.build()).enqueue(new Callback() {
       @Override
       public void onFailure(@NonNull Call call, @NonNull IOException e) {
         callback.onFailure(new ShopEaseError(e));
@@ -77,7 +87,13 @@ public class NetworkHelper {
   // Perform POST Request
   public void post(Context context, String url, Map<String, String> jsonBody, NetworkCallback callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
+
+    // Validate the URL
+    if (!isValidUrl(baseUrl + url)) {
+      callback.onFailure(new ShopEaseError(new URISyntaxException(baseUrl + url, "invalid Url")));
+      return;
+    }
 
     String jsonString = new Gson().toJson(jsonBody);
     RequestBody body = RequestBody.create(jsonString, JSON);
@@ -86,32 +102,38 @@ public class NetworkHelper {
         .post(body)
         .build();
 
-    client.newCall(request).enqueue(new Callback() {
-      @Override
-      public void onFailure(@NonNull Call call, @NonNull IOException e) {
-        callback.onFailure(new ShopEaseError(e));
-      }
+    try {
+      client.newCall(request).enqueue(new Callback() {
+        @Override
+        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+          e.printStackTrace();
+          callback.onFailure(new ShopEaseError(e));
+        }
 
-      @Override
-      public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-        if (!response.isSuccessful()) {
-          callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
-        } else {
-          ResponseBody responseData = response.body();
-          if (responseData != null) {
-            callback.onSuccess(responseData.string());
+        @Override
+        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+          if (!response.isSuccessful()) {
+            callback.onFailure(new ShopEaseError(response.code(), response.message(), response));
           } else {
-            callback.onFailure(new ShopEaseError());
+            ResponseBody responseData = response.body();
+            if (responseData != null) {
+              callback.onSuccess(responseData.string());
+            } else {
+              callback.onFailure(new ShopEaseError());
+            }
           }
         }
-      }
-    });
+      });
+    } catch (Exception e) {
+      e.printStackTrace();
+      callback.onFailure(new ShopEaseError(e));
+    }
   }
 
   // Perform PUT Request
   public void put(Context context, String url, String jsonBody, NetworkCallback callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
     RequestBody body = RequestBody.create(jsonBody, JSON);
     Request request = new Request.Builder()
@@ -144,7 +166,7 @@ public class NetworkHelper {
   // Perform DELETE Request
   public void delete(Context context, String url, NetworkCallback callback) {
     SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
-    String baseUrl = sharedPreferencesHelper.getString("base_url", "");
+    String baseUrl = sharedPreferencesHelper.getString(PrefKeys.BASE_URL, "");
 
     Request request = new Request.Builder()
         .url(baseUrl + url)

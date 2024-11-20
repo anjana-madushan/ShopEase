@@ -28,20 +28,35 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintBottom_toTopOf="@+id/otp_btn_submit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView3"
         app:layout_constraintVertical_chainStyle="packed">
 
+        <EditText
+            android:id="@+id/edt_otp1"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+
+            android:autofillHints="numeric"
+            android:background="@color/white"
+            android:ems="4"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:padding="10dp"
+            tools:ignore="LabelFor,SpeakableTextPresentCheck" />
+
         <Space
             android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
         <EditText
-            android:id="@+id/editTextNumber"
+            android:id="@+id/edt_otp2"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_weight="1"
@@ -60,7 +75,7 @@
             android:layout_weight="1" />
 
         <EditText
-            android:id="@+id/editTextNumber2"
+            android:id="@+id/edt_otp3"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_weight="1"
@@ -79,7 +94,7 @@
             android:layout_weight="1" />
 
         <EditText
-            android:id="@+id/editTextNumber3"
+            android:id="@+id/edt_otp4"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_weight="1"
@@ -98,7 +113,7 @@
             android:layout_weight="1" />
 
         <EditText
-            android:id="@+id/editTextNumber4"
+            android:id="@+id/edt_otp5"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_weight="1"
@@ -115,10 +130,24 @@
             android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
+
+        <EditText
+            android:id="@+id/edt_otp6"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:autofillHints="numeric"
+            android:background="@color/white"
+            android:ems="4"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:padding="10dp"
+            tools:ignore="LabelFor,SpeakableTextPresentCheck" />
     </LinearLayout>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/otp_btn_submit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"

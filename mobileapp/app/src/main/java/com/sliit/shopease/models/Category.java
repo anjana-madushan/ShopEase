@@ -1,18 +1,24 @@
 package com.sliit.shopease.models;
 
-public class Category {
-  private String id;
-  private String name;
-  private String imageUrl;
+import com.google.gson.Gson;
 
-  public Category(String id, String name, String imageUrl){
-    this.id = id;
+public class Category {
+  private final String name;
+  private final String imageUrl;
+
+  public Category(String name, String imageUrl) {
     this.name = name;
     this.imageUrl = imageUrl;
   }
 
-  public String getId() {
-    return id;
+  //GSON from Json
+  public static Category fromJson(String jsonString) {
+    Gson gson = new Gson();
+    return gson.fromJson(jsonString, Category.class);
+  }
+
+  public static Category fromString(String categoryString) {
+   return new Category(categoryString, null);
   }
 
   public String getName() {
@@ -21,5 +27,11 @@ public class Category {
 
   public String getImageUrl() {
     return imageUrl;
+  }
+
+  //GSON to json
+  public String toJson() {
+    Gson gson = new Gson();
+    return gson.toJson(this);
   }
 }
