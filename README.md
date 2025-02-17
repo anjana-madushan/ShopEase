@@ -31,7 +31,7 @@ The system supports multiple user roles, product and order management, inventory
 
 ## 🚀 Installation & Setup  
 
-### Backend (ASP.NET)  
+### Backend 🖥️📱🔧 (ASP.NET)  
 1. Clone the repository:  
    ```bash
    git clone https://github.com/your-repo-link.git
@@ -42,7 +42,7 @@ The system supports multiple user roles, product and order management, inventory
    dotnet restore
    dotnet run
 
-### Frontend - back office (React)  
+### Frontend 🌐💻 - back office (React)  
 1. Navigate to the frontend directory:
    ```bash
    cd frontend
@@ -52,7 +52,14 @@ The system supports multiple user roles, product and order management, inventory
    npm install
    npm start
 
-### Mobile App (Java - Android)
-- **Open the mobile app folder in Android Studio.
-- **Connect a device or start an emulator.
-- **Build and run the application.
+### Mobile App 📱 - customer (Java - Android)  
+- **Open the `mobile-app` folder in Android Studio.**  
+- **Connect a device or start an emulator.**  
+- **Build and run the application.**  
+
+### 🤝 Contributors
+This project was developed as a group project by:
+1. [Anjana Madushan](https://github.com/anjana-madushan)
+2. [Priyantha Fernando](https://github.com/Priyantha-IT21021534)
+3. [Hesara Pasan Mahendra](https://github.com/IT21128622)
+4. [Nowen Kottage](https://github.com/KOTTAGENVH)
